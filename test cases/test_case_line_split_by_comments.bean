@@ -1,0 +1,22 @@
+# test line split by comments
+typedef {
+	f1 : int,
+	f2 : bool 
+} a_type
+
+proc main ()
+int m;
+int n;
+
+read m;
+n := m + n #;
+;
+end
+
+proc next()
+int a;  int b;
+
+read m;
+write # comment;
+b;
+end

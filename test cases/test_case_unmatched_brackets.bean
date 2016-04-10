@@ -1,0 +1,12 @@
+# test unmatched brackets
+typedef fx a_type
+typedef {
+	f : int
+} a_type
+
+proc main (
+int m;
+int n;
+
+read m;
+end

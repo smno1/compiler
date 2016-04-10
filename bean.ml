@@ -28,14 +28,16 @@ let main () =
   | Some fname -> open_in fname in
   (* Initialize lexing buffer *)
   let lexbuf = Lexing.from_channel infile in
-  (* Call the parser *)
-  let prog = Bean_parse.program Bean_lex.token lexbuf in
-  (* If the mode is pp, then call the print_program; 
-   * otherwise, print the error msg *)
-  match !mode with
-  | PrettyPrint ->
-    PP.print_program F.std_formatter prog 
-  | Compile -> 
-    prerr_string "Sorry, cannot generate code yet.\n"
+    try
+      (* Call the parser *)
+      let prog = Bean_parse.program Bean_lex.token lexbuf in
+      (* If the mode is pp, then call the print_program; 
+       * otherwise, print the error msg *)
+      match !mode with
+      | PrettyPrint ->
+        PP.print_program F.std_formatter prog 
+      | Compile -> 
+        prerr_string "Sorry, cannot generate code yet.\n"
+    with exn -> ()
 
 let _ = main ()

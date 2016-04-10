@@ -1,0 +1,11 @@
+# test unknown symbols
+typedef {
+	f1 : int,
+	f : bool 
+} a_type
+
+proc main ()
+int Ω;
+
+read Ω;
+end

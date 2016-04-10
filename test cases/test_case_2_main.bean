@@ -1,0 +1,19 @@
+# test proc with 2 mains
+typedef {
+	f : int,
+	f : bool 
+} a_type
+
+# proc main 1
+proc main (
+int m;
+int n;
+
+end
+
+# proc main 2
+proc main ()
+int a;
+bool b;
+
+end

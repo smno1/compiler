@@ -1,0 +1,11 @@
+# test proc with no body
+typedef {
+	f : int,
+	f : bool 
+} a_type
+
+proc main ()
+int m;
+int n;
+
+end

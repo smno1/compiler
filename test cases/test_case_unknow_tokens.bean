@@ -1,0 +1,17 @@
+# test unknown tokens
+typedef {
+	f : int,
+	f : bool 
+} a_type
+
+proc main ()
+int m;
+int n;
+
+n := m And n;
+## also a comment
+n := ab;
+
+
+read m;
+end

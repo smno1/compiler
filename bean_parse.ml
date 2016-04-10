@@ -45,7 +45,6 @@ type token =
   | UNKNOWN
 
 open Parsing;;
-let _ = parse_error;;
 # 2 "bean_parse.mly"
 open Bean_ast
 
@@ -56,14 +55,14 @@ let parse_error s =
       let start_pos = Parsing.symbol_start_pos ()
       and end_pos = Parsing.symbol_end_pos () in
       Printf.printf "at line %d, characters %d-%d: \n"
-        start_pos.pos_lnum
-        (start_pos.pos_cnum - start_pos.pos_bol)
-        (end_pos.pos_cnum - start_pos.pos_bol)
+        start_pos.Lexing.pos_lnum
+        (start_pos.Lexing.pos_cnum - start_pos.Lexing.pos_bol)
+        (end_pos.Lexing.pos_cnum - start_pos.Lexing.pos_bol)
     with Invalid_argument(_) -> ()
   end;
   Printf.printf "Syntax error: %s\n" s;
   raise Parsing.Parse_error
-# 67 "bean_parse.ml"
+# 66 "bean_parse.ml"
 let yytransl_const = [|
   261 (* BOOL *);
   262 (* INT *);
@@ -420,7 +419,7 @@ let yyact = [|
     Obj.repr(
 # 51 "bean_parse.mly"
                  ( { typedefs = List.rev _1 ; procs = List.rev _2 } )
-# 424 "bean_parse.ml"
+# 423 "bean_parse.ml"
                : Bean_ast.program))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : 'typedefs) in
@@ -428,13 +427,13 @@ let yyact = [|
     Obj.repr(
 # 54 "bean_parse.mly"
                      ( _2 :: _1 )
-# 432 "bean_parse.ml"
+# 431 "bean_parse.ml"
                : 'typedefs))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 55 "bean_parse.mly"
     ( [] )
-# 438 "bean_parse.ml"
+# 437 "bean_parse.ml"
                : 'typedefs))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'typespec) in
@@ -442,46 +441,46 @@ let yyact = [|
     Obj.repr(
 # 58 "bean_parse.mly"
                            ( (_2, _3) )
-# 446 "bean_parse.ml"
+# 445 "bean_parse.ml"
                : 'typedef))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 61 "bean_parse.mly"
          ( Bool )
-# 452 "bean_parse.ml"
+# 451 "bean_parse.ml"
                : 'typespec))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 62 "bean_parse.mly"
         ( Int )
-# 458 "bean_parse.ml"
+# 457 "bean_parse.ml"
                : 'typespec))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'fielddefs) in
     Obj.repr(
 # 63 "bean_parse.mly"
                           ( Flist (List.rev _2) )
-# 465 "bean_parse.ml"
+# 464 "bean_parse.ml"
                : 'typespec))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string) in
     Obj.repr(
 # 65 "bean_parse.mly"
           ( Id _1 )
-# 472 "bean_parse.ml"
+# 471 "bean_parse.ml"
                : 'typespec))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'fielddefs) in
     Obj.repr(
 # 66 "bean_parse.mly"
                               ( parse_error "expected '}'.")
-# 479 "bean_parse.ml"
+# 478 "bean_parse.ml"
                : 'typespec))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 67 "bean_parse.mly"
                               ( parse_error "not a valid identifier." )
-# 485 "bean_parse.ml"
+# 484 "bean_parse.ml"
                : 'typespec))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : string) in
@@ -489,14 +488,14 @@ let yyact = [|
     Obj.repr(
 # 72 "bean_parse.mly"
                          ( (_1, _3) )
-# 493 "bean_parse.ml"
+# 492 "bean_parse.ml"
                : 'fielddef))
 ; (fun __caml_parser_env ->
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'typespec) in
     Obj.repr(
 # 73 "bean_parse.mly"
                               ( parse_error "not a valid identifier." )
-# 500 "bean_parse.ml"
+# 499 "bean_parse.ml"
                : 'fielddef))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'fielddefs) in
@@ -504,14 +503,14 @@ let yyact = [|
     Obj.repr(
 # 76 "bean_parse.mly"
                              ( _3 :: _1 )
-# 508 "bean_parse.ml"
+# 507 "bean_parse.ml"
                : 'fielddefs))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'fielddef) in
     Obj.repr(
 # 77 "bean_parse.mly"
              ( [_1] )
-# 515 "bean_parse.ml"
+# 514 "bean_parse.ml"
                : 'fielddefs))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : 'procs) in
@@ -519,20 +518,20 @@ let yyact = [|
     Obj.repr(
 # 81 "bean_parse.mly"
                ( _2 :: _1 )
-# 523 "bean_parse.ml"
+# 522 "bean_parse.ml"
                : 'procs))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'proc) in
     Obj.repr(
 # 82 "bean_parse.mly"
          ( [_1] )
-# 530 "bean_parse.ml"
+# 529 "bean_parse.ml"
                : 'procs))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 83 "bean_parse.mly"
                               ( parse_error "must not have empty typespec.")
-# 536 "bean_parse.ml"
+# 535 "bean_parse.ml"
                : 'procs))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 2 : 'procheader) in
@@ -540,7 +539,7 @@ let yyact = [|
     Obj.repr(
 # 87 "bean_parse.mly"
                                  ( (_2, _3) )
-# 544 "bean_parse.ml"
+# 543 "bean_parse.ml"
                : 'proc))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'procheader) in
@@ -548,7 +547,7 @@ let yyact = [|
     Obj.repr(
 # 88 "bean_parse.mly"
                               ( parse_error "expected 'end'." )
-# 552 "bean_parse.ml"
+# 551 "bean_parse.ml"
                : 'proc))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : string) in
@@ -556,7 +555,7 @@ let yyact = [|
     Obj.repr(
 # 92 "bean_parse.mly"
                                ( { procname = _1; parameters = (List.rev _3) } )
-# 560 "bean_parse.ml"
+# 559 "bean_parse.ml"
                : 'procheader))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : string) in
@@ -564,7 +563,7 @@ let yyact = [|
     Obj.repr(
 # 93 "bean_parse.mly"
                               ( parse_error "expected ')'" )
-# 568 "bean_parse.ml"
+# 567 "bean_parse.ml"
                : 'procheader))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : string) in
@@ -572,7 +571,7 @@ let yyact = [|
     Obj.repr(
 # 94 "bean_parse.mly"
                               ( parse_error "expected '('" )
-# 576 "bean_parse.ml"
+# 575 "bean_parse.ml"
                : 'procheader))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'params) in
@@ -580,20 +579,20 @@ let yyact = [|
     Obj.repr(
 # 97 "bean_parse.mly"
                        ( _3 :: _1 )
-# 584 "bean_parse.ml"
+# 583 "bean_parse.ml"
                : 'params))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'param) in
     Obj.repr(
 # 98 "bean_parse.mly"
           ( [_1] )
-# 591 "bean_parse.ml"
+# 590 "bean_parse.ml"
                : 'params))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 99 "bean_parse.mly"
     ( [] )
-# 597 "bean_parse.ml"
+# 596 "bean_parse.ml"
                : 'params))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'params) in
@@ -601,7 +600,7 @@ let yyact = [|
     Obj.repr(
 # 100 "bean_parse.mly"
                               ( parse_error "parameters should be ',' separated." )
-# 605 "bean_parse.ml"
+# 604 "bean_parse.ml"
                : 'params))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'passspec) in
@@ -610,19 +609,19 @@ let yyact = [|
     Obj.repr(
 # 104 "bean_parse.mly"
                           ( (_1, _2, _3) )
-# 614 "bean_parse.ml"
+# 613 "bean_parse.ml"
                : 'param))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 107 "bean_parse.mly"
         ( Val )
-# 620 "bean_parse.ml"
+# 619 "bean_parse.ml"
                : 'passspec))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 108 "bean_parse.mly"
         ( Ref )
-# 626 "bean_parse.ml"
+# 625 "bean_parse.ml"
                : 'passspec))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : 'vardecls) in
@@ -630,7 +629,7 @@ let yyact = [|
     Obj.repr(
 # 111 "bean_parse.mly"
                  ( { vardecls = List.rev _1 ; stmts = List.rev _2 } )
-# 634 "bean_parse.ml"
+# 633 "bean_parse.ml"
                : 'procbody))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : 'vardecls) in
@@ -638,13 +637,13 @@ let yyact = [|
     Obj.repr(
 # 114 "bean_parse.mly"
                      ( _2 :: _1 )
-# 642 "bean_parse.ml"
+# 641 "bean_parse.ml"
                : 'vardecls))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 115 "bean_parse.mly"
     ( [] )
-# 648 "bean_parse.ml"
+# 647 "bean_parse.ml"
                : 'vardecls))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'typespec) in
@@ -652,7 +651,7 @@ let yyact = [|
     Obj.repr(
 # 118 "bean_parse.mly"
                              ( (_1, _2) )
-# 656 "bean_parse.ml"
+# 655 "bean_parse.ml"
                : 'vardecl))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : 'stmts) in
@@ -660,20 +659,20 @@ let yyact = [|
     Obj.repr(
 # 122 "bean_parse.mly"
                ( _2 :: _1 )
-# 664 "bean_parse.ml"
+# 663 "bean_parse.ml"
                : 'stmts))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'stmt) in
     Obj.repr(
 # 123 "bean_parse.mly"
          ( [_1] )
-# 671 "bean_parse.ml"
+# 670 "bean_parse.ml"
                : 'stmts))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 124 "bean_parse.mly"
                               ( parse_error "expected a statement." )
-# 677 "bean_parse.ml"
+# 676 "bean_parse.ml"
                : 'stmts))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : 'lvalue) in
@@ -681,28 +680,28 @@ let yyact = [|
     Obj.repr(
 # 127 "bean_parse.mly"
                                    ( Assign (_1, _3) )
-# 685 "bean_parse.ml"
+# 684 "bean_parse.ml"
                : 'stmt))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'lvalue) in
     Obj.repr(
 # 128 "bean_parse.mly"
                           ( Read _2 )
-# 692 "bean_parse.ml"
+# 691 "bean_parse.ml"
                : 'stmt))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'expr) in
     Obj.repr(
 # 129 "bean_parse.mly"
                          ( Write _2 )
-# 699 "bean_parse.ml"
+# 698 "bean_parse.ml"
                : 'stmt))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 1 : string) in
     Obj.repr(
 # 130 "bean_parse.mly"
                                  ( WriteS _2 )
-# 706 "bean_parse.ml"
+# 705 "bean_parse.ml"
                : 'stmt))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 4 : string) in
@@ -710,7 +709,7 @@ let yyact = [|
     Obj.repr(
 # 131 "bean_parse.mly"
                                         ( Call (_1, _3) )
-# 714 "bean_parse.ml"
+# 713 "bean_parse.ml"
                : 'stmt))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 3 : 'expr) in
@@ -718,7 +717,7 @@ let yyact = [|
     Obj.repr(
 # 132 "bean_parse.mly"
                           ( IfThen (_2, _4) )
-# 722 "bean_parse.ml"
+# 721 "bean_parse.ml"
                : 'stmt))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 5 : 'expr) in
@@ -727,7 +726,7 @@ let yyact = [|
     Obj.repr(
 # 133 "bean_parse.mly"
                                      ( IfThenElse (_2, _4, _6) )
-# 731 "bean_parse.ml"
+# 730 "bean_parse.ml"
                : 'stmt))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 3 : 'expr) in
@@ -735,27 +734,27 @@ let yyact = [|
     Obj.repr(
 # 134 "bean_parse.mly"
                            ( While (_2, _4) )
-# 739 "bean_parse.ml"
+# 738 "bean_parse.ml"
                : 'stmt))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 135 "bean_parse.mly"
                               ( parse_error "do not accept empty statement.")
-# 745 "bean_parse.ml"
+# 744 "bean_parse.ml"
                : 'stmt))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'expr) in
     Obj.repr(
 # 136 "bean_parse.mly"
                               ( parse_error "expected a ';'.")
-# 752 "bean_parse.ml"
+# 751 "bean_parse.ml"
                : 'stmt))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'lvalue) in
     Obj.repr(
 # 137 "bean_parse.mly"
                               ( parse_error "expected a ';'.")
-# 759 "bean_parse.ml"
+# 758 "bean_parse.ml"
                : 'stmt))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'lvalue) in
@@ -763,33 +762,33 @@ let yyact = [|
     Obj.repr(
 # 138 "bean_parse.mly"
                               ( parse_error "expected a ';'.")
-# 767 "bean_parse.ml"
+# 766 "bean_parse.ml"
                : 'stmt))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'expr) in
     Obj.repr(
 # 141 "bean_parse.mly"
          ( Rexpr _1 )
-# 774 "bean_parse.ml"
+# 773 "bean_parse.ml"
                : 'rvalue))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'fieldinits) in
     Obj.repr(
 # 142 "bean_parse.mly"
                            ( Rstruct _2 )
-# 781 "bean_parse.ml"
+# 780 "bean_parse.ml"
                : 'rvalue))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 143 "bean_parse.mly"
                               ( parse_error "unknown token when expecting an expression." )
-# 787 "bean_parse.ml"
+# 786 "bean_parse.ml"
                : 'rvalue))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 144 "bean_parse.mly"
                               ( parse_error "do not accept empty right hand side." )
-# 793 "bean_parse.ml"
+# 792 "bean_parse.ml"
                : 'rvalue))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'fieldinits) in
@@ -797,20 +796,20 @@ let yyact = [|
     Obj.repr(
 # 147 "bean_parse.mly"
                                ( _3 :: _1 )
-# 801 "bean_parse.ml"
+# 800 "bean_parse.ml"
                : 'fieldinits))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'fieldinit) in
     Obj.repr(
 # 148 "bean_parse.mly"
               ( [_1] )
-# 808 "bean_parse.ml"
+# 807 "bean_parse.ml"
                : 'fieldinits))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 149 "bean_parse.mly"
     ( [] )
-# 814 "bean_parse.ml"
+# 813 "bean_parse.ml"
                : 'fieldinits))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : 'fieldinits) in
@@ -818,7 +817,7 @@ let yyact = [|
     Obj.repr(
 # 151 "bean_parse.mly"
                               ( parse_error "should be ',' separated." )
-# 822 "bean_parse.ml"
+# 821 "bean_parse.ml"
                : 'fieldinits))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'fieldinits) in
@@ -826,7 +825,7 @@ let yyact = [|
     Obj.repr(
 # 153 "bean_parse.mly"
                               ( parse_error "should be ',' separated." )
-# 830 "bean_parse.ml"
+# 829 "bean_parse.ml"
                : 'fieldinits))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : string) in
@@ -834,14 +833,14 @@ let yyact = [|
     Obj.repr(
 # 156 "bean_parse.mly"
                   ( (_1, _3) )
-# 838 "bean_parse.ml"
+# 837 "bean_parse.ml"
                : 'fieldinit))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string) in
     Obj.repr(
 # 159 "bean_parse.mly"
           ( LId _1 )
-# 845 "bean_parse.ml"
+# 844 "bean_parse.ml"
                : 'lvalue))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'lvalue) in
@@ -849,7 +848,7 @@ let yyact = [|
     Obj.repr(
 # 160 "bean_parse.mly"
                         ( LField (_1, _3) )
-# 853 "bean_parse.ml"
+# 852 "bean_parse.ml"
                : 'lvalue))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'exprs) in
@@ -857,7 +856,7 @@ let yyact = [|
     Obj.repr(
 # 163 "bean_parse.mly"
                      ( _3 :: _1 )
-# 861 "bean_parse.ml"
+# 860 "bean_parse.ml"
                : 'exprs))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'exprs) in
@@ -865,41 +864,41 @@ let yyact = [|
     Obj.repr(
 # 164 "bean_parse.mly"
                               ( parse_error "expressions should be ',' separated." )
-# 869 "bean_parse.ml"
+# 868 "bean_parse.ml"
                : 'exprs))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'expr) in
     Obj.repr(
 # 165 "bean_parse.mly"
          ( [_1] )
-# 876 "bean_parse.ml"
+# 875 "bean_parse.ml"
                : 'exprs))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 166 "bean_parse.mly"
     ( [] )
-# 882 "bean_parse.ml"
+# 881 "bean_parse.ml"
                : 'exprs))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : bool) in
     Obj.repr(
 # 169 "bean_parse.mly"
                ( Ebool _1 )
-# 889 "bean_parse.ml"
+# 888 "bean_parse.ml"
                : 'expr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : int) in
     Obj.repr(
 # 170 "bean_parse.mly"
               ( Eint _1 )
-# 896 "bean_parse.ml"
+# 895 "bean_parse.ml"
                : 'expr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'lvalue) in
     Obj.repr(
 # 171 "bean_parse.mly"
            ( Elval _1 )
-# 903 "bean_parse.ml"
+# 902 "bean_parse.ml"
                : 'expr))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'expr) in
@@ -908,7 +907,7 @@ let yyact = [|
     Obj.repr(
 # 173 "bean_parse.mly"
                     (Ebinop (_1,_2,_3))
-# 912 "bean_parse.ml"
+# 911 "bean_parse.ml"
                : 'expr))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 3 : 'expr) in
@@ -917,117 +916,117 @@ let yyact = [|
     Obj.repr(
 # 174 "bean_parse.mly"
                                   (Pebinop (_2, _3, _4))
-# 921 "bean_parse.ml"
+# 920 "bean_parse.ml"
                : 'expr))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'expr) in
     Obj.repr(
 # 175 "bean_parse.mly"
              ( Eunop (Op_not, _2) )
-# 928 "bean_parse.ml"
+# 927 "bean_parse.ml"
                : 'expr))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'expr) in
     Obj.repr(
 # 176 "bean_parse.mly"
                             ( Eunop (Op_minus, _2) )
-# 935 "bean_parse.ml"
+# 934 "bean_parse.ml"
                : 'expr))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 180 "bean_parse.mly"
           (Op_sub)
-# 941 "bean_parse.ml"
+# 940 "bean_parse.ml"
                : 'binop))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 181 "bean_parse.mly"
          (Op_add)
-# 947 "bean_parse.ml"
+# 946 "bean_parse.ml"
                : 'binop))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 182 "bean_parse.mly"
         (Op_mul)
-# 953 "bean_parse.ml"
+# 952 "bean_parse.ml"
                : 'binop))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 183 "bean_parse.mly"
         (Op_div)
-# 959 "bean_parse.ml"
+# 958 "bean_parse.ml"
                : 'binop))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 184 "bean_parse.mly"
         (Op_eq)
-# 965 "bean_parse.ml"
+# 964 "bean_parse.ml"
                : 'binop))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 185 "bean_parse.mly"
         (Op_neq)
-# 971 "bean_parse.ml"
+# 970 "bean_parse.ml"
                : 'binop))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 186 "bean_parse.mly"
        (Op_lt)
-# 977 "bean_parse.ml"
+# 976 "bean_parse.ml"
                : 'binop))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 187 "bean_parse.mly"
        (Op_gt)
-# 983 "bean_parse.ml"
+# 982 "bean_parse.ml"
                : 'binop))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 188 "bean_parse.mly"
         (Op_lte)
-# 989 "bean_parse.ml"
+# 988 "bean_parse.ml"
                : 'binop))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 189 "bean_parse.mly"
         (Op_gte)
-# 995 "bean_parse.ml"
+# 994 "bean_parse.ml"
                : 'binop))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 190 "bean_parse.mly"
        (Op_or)
-# 1001 "bean_parse.ml"
+# 1000 "bean_parse.ml"
                : 'binop))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 191 "bean_parse.mly"
         (Op_and)
-# 1007 "bean_parse.ml"
+# 1006 "bean_parse.ml"
                : 'binop))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 192 "bean_parse.mly"
         (Op_lte)
-# 1013 "bean_parse.ml"
+# 1012 "bean_parse.ml"
                : 'binop))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 193 "bean_parse.mly"
         (Op_gte)
-# 1019 "bean_parse.ml"
+# 1018 "bean_parse.ml"
                : 'binop))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 194 "bean_parse.mly"
        (Op_or)
-# 1025 "bean_parse.ml"
+# 1024 "bean_parse.ml"
                : 'binop))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 195 "bean_parse.mly"
         (Op_and)
-# 1031 "bean_parse.ml"
+# 1030 "bean_parse.ml"
                : 'binop))
 (* Entry program *)
 ; (fun __caml_parser_env -> raise (Parsing.YYexit (Parsing.peek_val __caml_parser_env 0)))

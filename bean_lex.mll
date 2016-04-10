@@ -24,7 +24,7 @@ rule token = parse
    * lexbuf is a recursive call to the lexer that does not add any tokens to 
    * the list whenever any whitespace is matched in the input string *)
   | [' ' '\t']        { token lexbuf }     
-  | '\n'              { incr num_lines;  token lexbuf }
+  | '\n'              { incr num_lines; Lexing.new_line lexbuf; token lexbuf }
   | '-'?digits as lxm { INT_CONST(int_of_string lxm) }
   | stringregex as lxm { STRING_CONST lxm }
   (* When the comment symbol is met, we ignore the tokens by using the 
@@ -72,17 +72,13 @@ rule token = parse
   | ';'               { SEMICOLON }
   | ':'               { COLON }
   | ident as lxm      { IDENT lxm }
-  (* For unknow chars, we just throw a failure to standard error. *)
-  | _ as chr          { failwith ("\nAt line " 
-                                  ^ string_of_int !num_lines
-                                  ^ "\nLex error with unknown symbols: "
-                                  ^ (Char.escaped chr)) }
+  | _                 { UNKNOWN }
   | eof               { EOF }
 
 (* The comments rule deals with commentation in the bean program. Once a '#' 
  * symbol is met, this rule takes over, adding 1 to the line number count. 
  * Anything till the end of the line will not be parsed *)
 and comments = parse
-  | '\n'              { incr num_lines; token lexbuf }
+  | '\n'              { incr num_lines; Lexing.new_line lexbuf; token lexbuf }
   | _                 { comments lexbuf }
   | eof               { EOF }

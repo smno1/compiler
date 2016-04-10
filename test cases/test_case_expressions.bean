@@ -1,0 +1,14 @@
+# test proc expressions
+typedef {
+	f : int,
+	f : bool 
+} a_type
+
+proc main ()
+int m;
+int n;
+
+m := {g = true, g = false};
+m := "fja;ksdfja";
+
+end

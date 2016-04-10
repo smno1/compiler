@@ -1,0 +1,5 @@
+# test 0 proc
+typedef {
+	f : int,
+	f : bool 
+} a_type

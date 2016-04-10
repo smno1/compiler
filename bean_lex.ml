@@ -1539,7 +1539,7 @@ and __ocaml_lex_token_rec lexbuf __ocaml_lex_state =
 
   | 1 ->
 # 27 "bean_lex.mll"
-                      ( incr num_lines;  token lexbuf )
+                      ( incr num_lines; Lexing.new_line lexbuf; token lexbuf )
 # 1544 "bean_lex.ml"
 
   | 2 ->
@@ -1778,47 +1778,37 @@ let
 # 1779 "bean_lex.ml"
 
   | 46 ->
-let
-# 76 "bean_lex.mll"
-         chr
-# 1785 "bean_lex.ml"
-= Lexing.sub_lexeme_char lexbuf lexbuf.Lexing.lex_start_pos in
-# 76 "bean_lex.mll"
-                      ( failwith ("\nAt line " 
-                                  ^ string_of_int !num_lines
-                                  ^ "\nLex error with unknown symbols: "
-                                  ^ (Char.escaped chr)) )
-# 1792 "bean_lex.ml"
+# 75 "bean_lex.mll"
+                      ( UNKNOWN )
+# 1784 "bean_lex.ml"
 
   | 47 ->
-# 80 "bean_lex.mll"
+# 76 "bean_lex.mll"
                       ( EOF )
-# 1797 "bean_lex.ml"
+# 1789 "bean_lex.ml"
 
-  | __ocaml_lex_state -> lexbuf.Lexing.refill_buff lexbuf; 
-      __ocaml_lex_token_rec lexbuf __ocaml_lex_state
+  | __ocaml_lex_state -> lexbuf.Lexing.refill_buff lexbuf; __ocaml_lex_token_rec lexbuf __ocaml_lex_state
 
 and comments lexbuf =
     __ocaml_lex_comments_rec lexbuf 96
 and __ocaml_lex_comments_rec lexbuf __ocaml_lex_state =
   match Lexing.engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 86 "bean_lex.mll"
-                      ( incr num_lines; token lexbuf )
-# 1809 "bean_lex.ml"
+# 82 "bean_lex.mll"
+                      ( incr num_lines; Lexing.new_line lexbuf; token lexbuf )
+# 1800 "bean_lex.ml"
 
   | 1 ->
-# 87 "bean_lex.mll"
+# 83 "bean_lex.mll"
                       ( comments lexbuf )
-# 1814 "bean_lex.ml"
+# 1805 "bean_lex.ml"
 
   | 2 ->
-# 88 "bean_lex.mll"
+# 84 "bean_lex.mll"
                       ( EOF )
-# 1819 "bean_lex.ml"
+# 1810 "bean_lex.ml"
 
-  | __ocaml_lex_state -> lexbuf.Lexing.refill_buff lexbuf; 
-      __ocaml_lex_comments_rec lexbuf __ocaml_lex_state
+  | __ocaml_lex_state -> lexbuf.Lexing.refill_buff lexbuf; __ocaml_lex_comments_rec lexbuf __ocaml_lex_state
 
 ;;
 

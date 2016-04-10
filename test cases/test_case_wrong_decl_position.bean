@@ -1,0 +1,12 @@
+# test wrong sequence of stmt / decls
+typedef {
+	f1 : int,
+	f2 : bool 
+} a_type
+
+proc main ()
+int m;
+
+read m;
+int n;
+end

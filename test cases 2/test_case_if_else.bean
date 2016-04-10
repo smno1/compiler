@@ -1,0 +1,21 @@
+# test if-else
+typedef {
+	f : int,
+	f : bool 
+} a_type
+
+proc main ()
+int m;
+int n;
+
+read m;
+n := m + n #;
+;
+end
+
+proc next(val bool x; ref b_record k)
+int a;  int b;
+
+read m;
+if a > b then write m; fi
+end

@@ -1,0 +1,12 @@
+# test comment
+# if you see the comment printed
+# "the parser is wrong"
+# "\n"
+# "\t"
+# \n \t
+proc main()
+int m;
+int n; # in-line comment
+write m;
+write n;
+end

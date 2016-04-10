@@ -1,0 +1,19 @@
+# test unmatched proc end
+typedef {
+	f1 : int,
+	f2 : bool 
+} a_type
+
+proc main ()
+int m;
+int n;
+
+read m;
+
+proc next ()
+int m;
+int n;
+
+write m;
+write n;
+end
