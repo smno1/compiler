@@ -22,6 +22,7 @@ type expr =
   | Eunop of (unop * expr)
   | Pebinop of (expr * binop * expr)
 
+(* Mutually recursive type definition *)
 type rvalue =
   | Rexpr of expr
   | Rstruct of structinit
@@ -29,12 +30,6 @@ and structinit =
   fieldinit list
 and fieldinit = 
   (ident * rvalue)
-(* 
-type fieldinit =
-  FEQ of (ident * rvalue)
-
-type structinit =
-  fieldinit list *)
 
 type passspec = 
   | Val

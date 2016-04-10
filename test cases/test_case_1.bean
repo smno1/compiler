@@ -14,12 +14,12 @@ proc q (
 		)
 int n; bool y;
 a_record z;
-z.f := 42;
+z.f := 5;
 z.f := { g = true,
 g = false };
 end
 
-proc p (ref int i)
+proc p (reff int i)
 i:=6*i + 4; end
 
 proc main ()

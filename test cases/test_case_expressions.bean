@@ -8,7 +8,6 @@ proc main ()
 int m;
 int n;
 
-m := {g = true, g = false};
-m := "fja;ksdfja";
+m := {g = true; g = false};
 
 end

@@ -1,7 +1,9 @@
 %{
 open Bean_ast
 
-let main_num = ref 0
+(* The customized error report function, which gives the location and
+ * suitable error messages. This implementation will work on OCaml 3.11.2.
+ * To compile on OCaml 4, just remove the 'Lexing' before 'pos_lnum' *)
 let parse_error s =
   begin
     try
@@ -47,149 +49,168 @@ let parse_error s =
 %start program
 %%
 
+/* -- Top Level: program -- */
 program :
-  typedefs procs { { typedefs = List.rev $1 ; procs = List.rev $2 } }
+  typedefs procs                  { { typedefs = List.rev $1; procs = List.rev $2 } }
 
+/* -- Type definition -- */
 typedefs :
-  | typedefs typedef { $2 :: $1 }
-  | { [] }
+  | typedefs typedef              { $2 :: $1 }
+  |                               { [] }
 
 typedef :
-  | TYPEDEF typespec IDENT { ($2, $3) }
+  | TYPEDEF typespec IDENT        { ($2, $3) }
 
+/* -- Type specification -- */
 typespec :
-  | BOOL { Bool }
-  | INT { Int }
-  | LBRAC fielddefs RBRAC { Flist (List.rev $2) } 
-  /* comma separated list of field definitions surrounded by {} */
-  | IDENT { Id $1 }
-  | LBRAC fielddefs           { parse_error "expected '}'."}
-  | UNKNOWN                   { parse_error "not a valid identifier." }
+  | BOOL                          { Bool }
+  | INT                           { Int }
+  | LBRAC fielddefs RBRAC         { Flist (List.rev $2) } 
+  | IDENT                         { Id $1 }
+  /* error patterns */
+  | LBRAC fielddefs               { parse_error "expected '}'."}
+  | UNKNOWN                       { parse_error "not a valid identifier." }
 
-
-
+/* -- Field definition: { f : int, g : bool } -- */
 fielddef :
-  | IDENT COLON typespec { ($1, $3) }
-  | UNKNOWN COLON typespec    { parse_error "not a valid identifier." }
+  | IDENT COLON typespec          { ($1, $3) }
+  /* error patterns */
+  | UNKNOWN COLON typespec        { parse_error "not a valid identifier." }
+  | IDENT COLON error             { parse_error "not a valid typespec."}
 
 fielddefs :
-  | fielddefs COMMA fielddef { $3 :: $1 }
-  | fielddef { [$1] }
+  | fielddefs COMMA fielddef      { $3 :: $1 }
+  | fielddef                      { [$1] }
+  /* error patterns */
+  | fielddefs SEMICOLON fielddef  { parse_error "should be ',' separated." }
+  |                               { parse_error "must not be empty."}
 
-/* Builds procedures in reverse order */
+/* -- Procedure -- */
 procs :
-  | procs proc { $2 :: $1 }
-  | proc { [$1] }
-  |                           { parse_error "must not have empty typespec."}
-
+  | procs proc                    { $2 :: $1 }
+  | proc                          { [$1] }
+  /* error patterns */
+  |                               { parse_error "must not have empty procedure." }
 
 proc :
-  | PROC procheader procbody END { ($2, $3) }
-  | PROC procheader procbody  { parse_error "expected 'end'." }
+  | PROC procheader procbody END  { ($2, $3) }
+  /* error patterns */
+  | PROC procheader procbody      { parse_error "expected 'end'." }
 
-
+/* -- Name and Parameter List of a procedure -- */
 procheader :
-  | IDENT LPAREN params RPAREN { { procname = $1; parameters = (List.rev $3) } }
-  | IDENT LPAREN params       { parse_error "expected ')'" }
-  | IDENT params              { parse_error "expected '('" }
+  | IDENT LPAREN params RPAREN    { { procname = $1; parameters = (List.rev $3) } }
+  /* error patterns */
+  | IDENT LPAREN params           { parse_error "expected ')'" }
+  | IDENT params                  { parse_error "expected '('" }
 
+/* -- Parameter list of the procedure -- */
 params :
-  | params COMMA param { $3 :: $1 }
-  | param { [$1] }
-  | { [] }
-  | params SEMICOLON param    { parse_error "parameters should be ',' separated." }
-
+  | params COMMA param            { $3 :: $1 }
+  | param                         { [$1] }
+  |                               { [] }
+  /* error patterns */
+  | params SEMICOLON param        { parse_error "parameters should be ',' separated." }
 
 param :
-  passspec typespec IDENT { ($1, $2, $3) }
+  | passspec typespec IDENT       { ($1, $2, $3) }  
 
+/* -- Indicator of variable type: Val / Ref -- */
 passspec :
-  | VAL { Val }
-  | REF { Ref }
+  | VAL                           { Val }
+  | REF                           { Ref }
 
+/* -- Procedure body: variable declaration and statements -- */
 procbody :
-  vardecls stmts { { vardecls = List.rev $1 ; stmts = List.rev $2 } }
+  vardecls stmts                  { { vardecls = List.rev $1; stmts = List.rev $2 } }
 
 vardecls :
-  | vardecls vardecl { $2 :: $1 }
-  | { [] }
+  | vardecls vardecl              { $2 :: $1 }
+  |                               { [] }
 
 vardecl :
-  | typespec IDENT SEMICOLON { ($1, $2) }
+  | typespec IDENT SEMICOLON      { ($1, $2) }
 
-/* Builds stmts in reverse order */
 stmts :
-  | stmts stmt { $2 :: $1 }
-  | stmt { [$1] }
-  |                           { parse_error "expected a statement." }
+  | stmts stmt                    { $2 :: $1 }
+  | stmt                          { [$1] }
+  /* error patterns */
+  |                               { parse_error "expected a statement." }
 
 stmt :
-  | lvalue ASSIGN rvalue SEMICOLON { Assign ($1, $3) }
-  | READ lvalue SEMICOLON { Read $2 }
-  | WRITE expr SEMICOLON { Write $2 }
-  | WRITE STRING_CONST SEMICOLON { WriteS $2 }
-  | IDENT LPAREN exprs RPAREN SEMICOLON { Call ($1, List.rev $3) }
-  | IF expr THEN stmts FI { IfThen ($2, List.rev $4) }
-  | IF expr THEN stmts ELSE stmts FI { IfThenElse ($2, List.rev $4, List.rev $6) }
-  | WHILE expr DO stmts OD { While ($2, List.rev $4) }
-  | SEMICOLON                 { parse_error "do not accept empty statement."}
-  | WRITE expr                { parse_error "expected a ';'."}
-  | READ lvalue               { parse_error "expected a ';'."}
-  | lvalue ASSIGN rvalue      { parse_error "expected a ';'."}
+  | lvalue ASSIGN rvalue SEMICOLON 
+                                  { Assign ($1, $3) }
+  | READ lvalue SEMICOLON         { Read $2 }
+  | WRITE expr SEMICOLON          { Write $2 }
+  | WRITE STRING_CONST SEMICOLON  { WriteS $2 }
+  | IDENT LPAREN exprs RPAREN SEMICOLON 
+                                  { Call ($1, List.rev $3) }
+  | IF expr THEN stmts FI         { IfThen ($2, List.rev $4) }
+  | IF expr THEN stmts ELSE stmts FI 
+                                  { IfThenElse ($2, List.rev $4, List.rev $6) }
+  | WHILE expr DO stmts OD        { While ($2, List.rev $4) }
+  /* error patterns */
+  | SEMICOLON                     { parse_error "do not accept empty statement." }
+  | WRITE expr                    { parse_error "expected a ';'."}
+  | READ lvalue                   { parse_error "expected a ';'."}
+  | lvalue ASSIGN rvalue          { parse_error "expected a ';'."}
 
+/* -- Right Value of statements -- */
 rvalue :
-  | expr { Rexpr $1 }
-  | LBRAC fieldinits RBRAC    { Rstruct (List.rev $2) }
-  | UNKNOWN                   { parse_error "unknown token when expecting an expression." }
-  |                           { parse_error "do not accept empty right hand side." }
+  | expr                          { Rexpr $1 }
+  | LBRAC fieldinits RBRAC        { Rstruct (List.rev $2) }
+  /* error patterns */
+  | UNKNOWN                       { parse_error "unknown token when expecting an expression." }
+  |                               { parse_error "do not accept empty right hand side." }
 
+/* -- Field Initializer: g = 0, f = true -- */
 fieldinits :
-  | fieldinits COMMA fieldinit { $3 :: $1 }
-  | fieldinit { [$1] }
-  | { [] }
-  | fieldinits fieldinit
-                              { parse_error "should be ',' separated." }
-  | fieldinits SEMICOLON fieldinit
-                              { parse_error "should be ',' separated." }
+  | fieldinits COMMA fieldinit    { $3 :: $1 }
+  | fieldinit                     { [$1] }
+  |                               { [] }
+  /* error patterns */
+  | fieldinits error fieldinit    { parse_error "should be ',' separated." }
 
 fieldinit :
-  IDENT EQ rvalue { ($1, $3) }
+  IDENT EQ rvalue                 { ($1, $3) }
 
+/* -- Left Value of statements -- */
 lvalue :
-  | IDENT { LId $1 }
-  | lvalue PERIOD IDENT { LField ($1, $3) }
+  | IDENT                         { LId $1 }
+  | lvalue PERIOD IDENT           { LField ($1, $3) }
 
+/* -- Expressions -- */
 exprs :
-  | exprs COMMA expr { $3 :: $1 }
-  | exprs error expr          { parse_error "expressions should be ',' separated." }
-  | expr { [$1] }
-  | { [] }
+  | exprs COMMA expr              { $3 :: $1 }
+  | expr                          { [$1] }
+  |                               { [] }
+  /* error patterns */
+  | exprs error expr              { parse_error "expressions should be ',' separated." }
 
 expr :
-  | BOOL_CONST { Ebool $1 }
-  | INT_CONST { Eint $1 }
-  | lvalue { Elval $1 }
+  | BOOL_CONST                    { Ebool $1 }
+  | INT_CONST                     { Eint $1 }
+  | lvalue                        { Elval $1 }
   /* Binary operators */
-  | expr binop expr {Ebinop ($1,$2,$3)}
-  | LPAREN expr binop expr RPAREN {Pebinop ($2, $3, $4)}
-  | NOT expr { Eunop (Op_not, $2) }
-  | MINUS expr %prec UMINUS { Eunop (Op_minus, $2) }
-
+  | expr binop expr               { Ebinop ($1,$2,$3) }
+  | LPAREN expr binop expr RPAREN { Pebinop ($2, $3, $4) }
+  | NOT expr                      { Eunop (Op_not, $2) }
+  | MINUS expr %prec UMINUS       { Eunop (Op_minus, $2) }
 
 binop:
-  | MINUS {Op_sub}
-  | PLUS {Op_add}
-  | MUL {Op_mul}
-  | DIV {Op_div}
-  | EQ  {Op_eq}
-  | NEQ {Op_neq}
-  | LT {Op_lt}
-  | GT {Op_gt}
-  | LTE {Op_lte}
-  | GTE {Op_gte}
-  | OR {Op_or}
-  | AND {Op_and}
-  | LTE {Op_lte}
-  | GTE {Op_gte} 
-  | OR {Op_or}  
-  | AND {Op_and}
+  | MINUS                         { Op_sub }
+  | PLUS                          { Op_add }
+  | MUL                           { Op_mul }
+  | DIV                           { Op_div }
+  | EQ                            { Op_eq }
+  | NEQ                           { Op_neq }
+  | LT                            { Op_lt }
+  | GT                            { Op_gt }
+  | LTE                           { Op_lte }
+  | GTE                           { Op_gte }
+  | OR                            { Op_or }
+  | AND                           { Op_and }
+  | LTE                           { Op_lte }
+  | GTE                           { Op_gte } 
+  | OR                            { Op_or }   
+  | AND                           { Op_and }
