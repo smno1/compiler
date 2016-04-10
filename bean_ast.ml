@@ -52,6 +52,7 @@ type stmt =
   | Assign of (lvalue * rvalue)
   | Read of lvalue
   | Write of expr
+  | WriteS of string
   | Call of (ident * expr list)
   | IfThen of (expr * stmt list)
   | IfThenElse of (expr * stmt list * stmt list)
