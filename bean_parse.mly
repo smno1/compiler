@@ -128,10 +128,10 @@ stmt :
   | READ lvalue SEMICOLON { Read $2 }
   | WRITE expr SEMICOLON { Write $2 }
   | WRITE STRING_CONST SEMICOLON { WriteS $2 }
-  | IDENT LPAREN exprs RPAREN SEMICOLON { Call ($1, $3) }
-  | IF expr THEN stmts FI { IfThen ($2, $4) }
-  | IF expr THEN stmts ELSE stmts FI { IfThenElse ($2, $4, $6) }
-  | WHILE expr DO stmts OD { While ($2, $4) }
+  | IDENT LPAREN exprs RPAREN SEMICOLON { Call ($1, List.rev $3) }
+  | IF expr THEN stmts FI { IfThen ($2, List.rev $4) }
+  | IF expr THEN stmts ELSE stmts FI { IfThenElse ($2, List.rev $4, List.rev $6) }
+  | WHILE expr DO stmts OD { While ($2, List.rev $4) }
   | SEMICOLON                 { parse_error "do not accept empty statement."}
   | WRITE expr                { parse_error "expected a ';'."}
   | READ lvalue               { parse_error "expected a ';'."}
@@ -139,7 +139,7 @@ stmt :
 
 rvalue :
   | expr { Rexpr $1 }
-  | LBRAC fieldinits RBRAC { Rstruct $2 }
+  | LBRAC fieldinits RBRAC    { Rstruct (List.rev $2) }
   | UNKNOWN                   { parse_error "unknown token when expecting an expression." }
   |                           { parse_error "do not accept empty right hand side." }
 

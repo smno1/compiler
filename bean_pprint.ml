@@ -27,7 +27,7 @@ and pp_fielddef_lst fmt (first::flst)=
 let pp_typedef fmt (typespec,ident)=
     fprintf fmt "typedef ";
     pp_typespec fmt typespec;
-    fprintf fmt " %s;@," ident
+    fprintf fmt " %s@," ident
 
 
 let pp_vardecl fmt (typespec,ident)=
@@ -98,7 +98,7 @@ and pp_binop fmt (expr1, binop, expr2)=
 and pp_unop fmt (unop, expr)=
     (match unop with
         Op_minus-> fprintf fmt "-"
-      | Op_minus-> fprintf fmt "not "
+      | Op_not  -> fprintf fmt "not "
         );
     pp_expr fmt true expr
 and pp_pbinop fmt pbinop=
@@ -141,7 +141,7 @@ let pp_write fmt expr=
 
 let pp_call fmt (id,exprlst)=
     pp_string fmt id;
-    fprintf fmt " (";
+    fprintf fmt "(";
     if (List.length exprlst) > 0 then (
         pp_expr fmt true (List.hd exprlst);
         List.map (pp_expr fmt false) (List.tl exprlst);
