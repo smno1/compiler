@@ -155,6 +155,7 @@ let rec pp_stmt fmt first stmt=
         Assign(ass) -> pp_assign fmt ass
       | Read(rlv) -> pp_read fmt rlv
       | Write(wexpr)-> pp_write fmt wexpr
+      | WriteS(ws)-> fprintf fmt "write %s;" ws
       | Call(c)-> pp_call fmt c
       | IfThen(ifth)-> pp_if_then fmt ifth
       | IfThenElse(ifte)->pp_if_then_else fmt ifte
