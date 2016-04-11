@@ -68,8 +68,8 @@ typespec :
   | LBRAC fielddefs RBRAC         { Flist (List.rev $2) } 
   | IDENT                         { Id $1 }
   /* error patterns */
-  | LBRAC fielddefs               { parse_error "expected '}'."}
-  | UNKNOWN                       { parse_error "not a valid identifier." }
+  /*| LBRAC fielddefs               { parse_error "expected '}'."}
+  | UNKNOWN                       { parse_error "not a valid identifier." }*/
 
 /* -- Field definition: { f : int, g : bool } -- */
 fielddef :
@@ -90,12 +90,13 @@ procs :
   | procs proc                    { $2 :: $1 }
   | proc                          { [$1] }
   /* error patterns */
-  |                               { parse_error "must not have empty procedure." }
+  /*|                               { parse_error "must not have empty procedure." }*/
 
 proc :
   | PROC procheader procbody END  { ($2, $3) }
   /* error patterns */
-  | PROC procheader procbody      { parse_error "expected 'end'." }
+/*  | PROC procheader procbody error
+                                  { parse_error "expected 'end'." }*/
 
 /* -- Name and Parameter List of a procedure -- */
 procheader :
@@ -110,7 +111,7 @@ params :
   | param                         { [$1] }
   |                               { [] }
   /* error patterns */
-  | params SEMICOLON param        { parse_error "parameters should be ',' separated." }
+  /*| params SEMICOLON param        { parse_error "parameters should be ',' separated." }*/
 
 param :
   | passspec typespec IDENT       { ($1, $2, $3) }  
@@ -150,10 +151,10 @@ stmt :
                                   { IfThenElse ($2, List.rev $4, List.rev $6) }
   | WHILE expr DO stmts OD        { While ($2, List.rev $4) }
   /* error patterns */
-  | SEMICOLON                     { parse_error "do not accept empty statement." }
+/*  | SEMICOLON                     { parse_error "do not accept empty statement." }
   | WRITE expr                    { parse_error "expected a ';'."}
   | READ lvalue                   { parse_error "expected a ';'."}
-  | lvalue ASSIGN rvalue          { parse_error "expected a ';'."}
+  | lvalue ASSIGN rvalue          { parse_error "expected a ';'."}*/
 
 /* -- Right Value of statements -- */
 rvalue :
