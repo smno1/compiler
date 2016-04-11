@@ -1,0 +1,1660 @@
+   0  $accept : %entry% $end
+
+   1  program : typedefs procs
+
+   2  typedefs : typedefs typedef
+   3           |
+
+   4  typedef : TYPEDEF typespec IDENT
+
+   5  typespec : BOOL
+   6           | INT
+   7           | LBRAC fielddefs RBRAC
+   8           | IDENT
+
+   9  fielddef : IDENT COLON typespec
+  10           | UNKNOWN COLON typespec
+  11           | IDENT COLON error
+
+  12  fielddefs : fielddefs COMMA fielddef
+  13            | fielddef
+  14            | fielddefs SEMICOLON fielddef
+  15            |
+
+  16  procs : procs proc
+  17        | proc
+
+  18  proc : PROC procheader procbody END
+
+  19  procheader : IDENT LPAREN params RPAREN
+  20             | IDENT LPAREN params
+  21             | IDENT params
+
+  22  params : params COMMA param
+  23         | param
+  24         |
+
+  25  param : passspec typespec IDENT
+
+  26  passspec : VAL
+  27           | REF
+
+  28  procbody : vardecls stmts
+
+  29  vardecls : vardecls vardecl
+  30           |
+
+  31  vardecl : typespec IDENT SEMICOLON
+
+  32  stmts : stmts stmt
+  33        | stmt
+  34        |
+
+  35  stmt : lvalue ASSIGN rvalue SEMICOLON
+  36       | READ lvalue SEMICOLON
+  37       | WRITE expr SEMICOLON
+  38       | WRITE STRING_CONST SEMICOLON
+  39       | IDENT LPAREN exprs RPAREN SEMICOLON
+  40       | IF expr THEN stmts FI
+  41       | IF expr THEN stmts ELSE stmts FI
+  42       | WHILE expr DO stmts OD
+
+  43  rvalue : expr
+  44         | LBRAC fieldinits RBRAC
+  45         | UNKNOWN
+  46         |
+
+  47  fieldinits : fieldinits COMMA fieldinit
+  48             | fieldinit
+  49             |
+  50             | fieldinits error fieldinit
+
+  51  fieldinit : IDENT EQ rvalue
+
+  52  lvalue : IDENT
+  53         | lvalue PERIOD IDENT
+
+  54  exprs : exprs COMMA expr
+  55        | expr
+  56        |
+  57        | exprs error expr
+
+  58  expr : BOOL_CONST
+  59       | INT_CONST
+  60       | lvalue
+  61       | expr binop expr
+  62       | LPAREN expr binop expr RPAREN
+  63       | NOT expr
+  64       | MINUS expr
+
+  65  binop : MINUS
+  66        | PLUS
+  67        | MUL
+  68        | DIV
+  69        | EQ
+  70        | NEQ
+  71        | LT
+  72        | GT
+  73        | LTE
+  74        | GTE
+  75        | OR
+  76        | AND
+  77        | LTE
+  78        | GTE
+  79        | OR
+  80        | AND
+
+  81  %entry% : '\001' program
+
+state 0
+	$accept : . %entry% $end  (0)
+
+	'\001'  shift 1
+	.  error
+
+	%entry%  goto 2
+
+
+state 1
+	%entry% : '\001' . program  (81)
+	typedefs : .  (3)
+
+	.  reduce 3
+
+	program  goto 3
+	typedefs  goto 4
+
+
+state 2
+	$accept : %entry% . $end  (0)
+
+	$end  accept
+
+
+state 3
+	%entry% : '\001' program .  (81)
+
+	.  reduce 81
+
+
+state 4
+	program : typedefs . procs  (1)
+	typedefs : typedefs . typedef  (2)
+
+	PROC  shift 5
+	TYPEDEF  shift 6
+	.  error
+
+	procs  goto 7
+	typedef  goto 8
+	proc  goto 9
+
+
+state 5
+	proc : PROC . procheader procbody END  (18)
+
+	IDENT  shift 10
+	.  error
+
+	procheader  goto 11
+
+
+state 6
+	typedef : TYPEDEF . typespec IDENT  (4)
+
+	IDENT  shift 12
+	BOOL  shift 13
+	INT  shift 14
+	LBRAC  shift 15
+	.  error
+
+	typespec  goto 16
+
+
+state 7
+	program : typedefs procs .  (1)
+	procs : procs . proc  (16)
+
+	PROC  shift 5
+	$end  reduce 1
+
+	proc  goto 17
+
+
+state 8
+	typedefs : typedefs typedef .  (2)
+
+	.  reduce 2
+
+
+state 9
+	procs : proc .  (17)
+
+	.  reduce 17
+
+
+state 10
+	procheader : IDENT . LPAREN params RPAREN  (19)
+	procheader : IDENT . LPAREN params  (20)
+	procheader : IDENT . params  (21)
+	params : .  (24)
+
+	LPAREN  shift 18
+	REF  shift 19
+	VAL  shift 20
+	IDENT  reduce 24
+	BOOL  reduce 24
+	INT  reduce 24
+	WRITE  reduce 24
+	READ  reduce 24
+	LBRAC  reduce 24
+	COMMA  reduce 24
+	WHILE  reduce 24
+	IF  reduce 24
+	END  reduce 24
+
+	params  goto 21
+	param  goto 22
+	passspec  goto 23
+
+
+state 11
+	proc : PROC procheader . procbody END  (18)
+	vardecls : .  (30)
+
+	.  reduce 30
+
+	procbody  goto 24
+	vardecls  goto 25
+
+
+state 12
+	typespec : IDENT .  (8)
+
+	.  reduce 8
+
+
+state 13
+	typespec : BOOL .  (5)
+
+	.  reduce 5
+
+
+state 14
+	typespec : INT .  (6)
+
+	.  reduce 6
+
+
+state 15
+	typespec : LBRAC . fielddefs RBRAC  (7)
+	fielddefs : .  (15)
+
+	IDENT  shift 26
+	UNKNOWN  shift 27
+	RBRAC  reduce 15
+	SEMICOLON  reduce 15
+	COMMA  reduce 15
+
+	fielddefs  goto 28
+	fielddef  goto 29
+
+
+state 16
+	typedef : TYPEDEF typespec . IDENT  (4)
+
+	IDENT  shift 30
+	.  error
+
+
+state 17
+	procs : procs proc .  (16)
+
+	.  reduce 16
+
+
+state 18
+	procheader : IDENT LPAREN . params RPAREN  (19)
+	procheader : IDENT LPAREN . params  (20)
+	params : .  (24)
+
+	REF  shift 19
+	VAL  shift 20
+	IDENT  reduce 24
+	BOOL  reduce 24
+	INT  reduce 24
+	WRITE  reduce 24
+	READ  reduce 24
+	RPAREN  reduce 24
+	LBRAC  reduce 24
+	COMMA  reduce 24
+	WHILE  reduce 24
+	IF  reduce 24
+	END  reduce 24
+
+	params  goto 31
+	param  goto 22
+	passspec  goto 23
+
+
+state 19
+	passspec : REF .  (27)
+
+	.  reduce 27
+
+
+state 20
+	passspec : VAL .  (26)
+
+	.  reduce 26
+
+
+state 21
+	procheader : IDENT params .  (21)
+	params : params . COMMA param  (22)
+
+	COMMA  shift 32
+	IDENT  reduce 21
+	BOOL  reduce 21
+	INT  reduce 21
+	WRITE  reduce 21
+	READ  reduce 21
+	LBRAC  reduce 21
+	WHILE  reduce 21
+	IF  reduce 21
+	END  reduce 21
+
+
+state 22
+	params : param .  (23)
+
+	.  reduce 23
+
+
+state 23
+	param : passspec . typespec IDENT  (25)
+
+	IDENT  shift 12
+	BOOL  shift 13
+	INT  shift 14
+	LBRAC  shift 15
+	.  error
+
+	typespec  goto 33
+
+
+state 24
+	proc : PROC procheader procbody . END  (18)
+
+	END  shift 34
+	.  error
+
+
+25: shift/reduce conflict (shift 35, reduce 34) on IDENT
+25: shift/reduce conflict (shift 36, reduce 34) on WRITE
+25: shift/reduce conflict (shift 37, reduce 34) on READ
+25: shift/reduce conflict (shift 38, reduce 34) on WHILE
+25: shift/reduce conflict (shift 39, reduce 34) on IF
+state 25
+	procbody : vardecls . stmts  (28)
+	vardecls : vardecls . vardecl  (29)
+	stmts : .  (34)
+
+	IDENT  shift 35
+	BOOL  shift 13
+	INT  shift 14
+	WRITE  shift 36
+	READ  shift 37
+	LBRAC  shift 15
+	WHILE  shift 38
+	IF  shift 39
+	END  reduce 34
+
+	typespec  goto 40
+	stmts  goto 41
+	vardecl  goto 42
+	stmt  goto 43
+	lvalue  goto 44
+
+
+state 26
+	fielddef : IDENT . COLON typespec  (9)
+	fielddef : IDENT . COLON error  (11)
+
+	COLON  shift 45
+	.  error
+
+
+state 27
+	fielddef : UNKNOWN . COLON typespec  (10)
+
+	COLON  shift 46
+	.  error
+
+
+state 28
+	typespec : LBRAC fielddefs . RBRAC  (7)
+	fielddefs : fielddefs . COMMA fielddef  (12)
+	fielddefs : fielddefs . SEMICOLON fielddef  (14)
+
+	RBRAC  shift 47
+	SEMICOLON  shift 48
+	COMMA  shift 49
+	.  error
+
+
+state 29
+	fielddefs : fielddef .  (13)
+
+	.  reduce 13
+
+
+state 30
+	typedef : TYPEDEF typespec IDENT .  (4)
+
+	.  reduce 4
+
+
+state 31
+	procheader : IDENT LPAREN params . RPAREN  (19)
+	procheader : IDENT LPAREN params .  (20)
+	params : params . COMMA param  (22)
+
+	RPAREN  shift 50
+	COMMA  shift 32
+	IDENT  reduce 20
+	BOOL  reduce 20
+	INT  reduce 20
+	WRITE  reduce 20
+	READ  reduce 20
+	LBRAC  reduce 20
+	WHILE  reduce 20
+	IF  reduce 20
+	END  reduce 20
+
+
+state 32
+	params : params COMMA . param  (22)
+
+	REF  shift 19
+	VAL  shift 20
+	.  error
+
+	param  goto 51
+	passspec  goto 23
+
+
+state 33
+	param : passspec typespec . IDENT  (25)
+
+	IDENT  shift 52
+	.  error
+
+
+state 34
+	proc : PROC procheader procbody END .  (18)
+
+	.  reduce 18
+
+
+state 35
+	typespec : IDENT .  (8)
+	stmt : IDENT . LPAREN exprs RPAREN SEMICOLON  (39)
+	lvalue : IDENT .  (52)
+
+	LPAREN  shift 53
+	IDENT  reduce 8
+	ASSIGN  reduce 52
+	PERIOD  reduce 52
+
+
+state 36
+	stmt : WRITE . expr SEMICOLON  (37)
+	stmt : WRITE . STRING_CONST SEMICOLON  (38)
+
+	BOOL_CONST  shift 54
+	INT_CONST  shift 55
+	IDENT  shift 56
+	STRING_CONST  shift 57
+	LPAREN  shift 58
+	MINUS  shift 59
+	NOT  shift 60
+	.  error
+
+	lvalue  goto 61
+	expr  goto 62
+
+
+state 37
+	stmt : READ . lvalue SEMICOLON  (36)
+
+	IDENT  shift 56
+	.  error
+
+	lvalue  goto 63
+
+
+state 38
+	stmt : WHILE . expr DO stmts OD  (42)
+
+	BOOL_CONST  shift 54
+	INT_CONST  shift 55
+	IDENT  shift 56
+	LPAREN  shift 58
+	MINUS  shift 59
+	NOT  shift 60
+	.  error
+
+	lvalue  goto 61
+	expr  goto 64
+
+
+state 39
+	stmt : IF . expr THEN stmts FI  (40)
+	stmt : IF . expr THEN stmts ELSE stmts FI  (41)
+
+	BOOL_CONST  shift 54
+	INT_CONST  shift 55
+	IDENT  shift 56
+	LPAREN  shift 58
+	MINUS  shift 59
+	NOT  shift 60
+	.  error
+
+	lvalue  goto 61
+	expr  goto 65
+
+
+state 40
+	vardecl : typespec . IDENT SEMICOLON  (31)
+
+	IDENT  shift 66
+	.  error
+
+
+state 41
+	procbody : vardecls stmts .  (28)
+	stmts : stmts . stmt  (32)
+
+	IDENT  shift 67
+	WRITE  shift 36
+	READ  shift 37
+	WHILE  shift 38
+	IF  shift 39
+	END  reduce 28
+
+	stmt  goto 68
+	lvalue  goto 44
+
+
+state 42
+	vardecls : vardecls vardecl .  (29)
+
+	.  reduce 29
+
+
+state 43
+	stmts : stmt .  (33)
+
+	.  reduce 33
+
+
+state 44
+	stmt : lvalue . ASSIGN rvalue SEMICOLON  (35)
+	lvalue : lvalue . PERIOD IDENT  (53)
+
+	ASSIGN  shift 69
+	PERIOD  shift 70
+	.  error
+
+
+state 45
+	fielddef : IDENT COLON . typespec  (9)
+	fielddef : IDENT COLON . error  (11)
+
+	error  shift 71
+	IDENT  shift 12
+	BOOL  shift 13
+	INT  shift 14
+	LBRAC  shift 15
+	.  error
+
+	typespec  goto 72
+
+
+state 46
+	fielddef : UNKNOWN COLON . typespec  (10)
+
+	IDENT  shift 12
+	BOOL  shift 13
+	INT  shift 14
+	LBRAC  shift 15
+	.  error
+
+	typespec  goto 73
+
+
+state 47
+	typespec : LBRAC fielddefs RBRAC .  (7)
+
+	.  reduce 7
+
+
+state 48
+	fielddefs : fielddefs SEMICOLON . fielddef  (14)
+
+	IDENT  shift 26
+	UNKNOWN  shift 27
+	.  error
+
+	fielddef  goto 74
+
+
+state 49
+	fielddefs : fielddefs COMMA . fielddef  (12)
+
+	IDENT  shift 26
+	UNKNOWN  shift 27
+	.  error
+
+	fielddef  goto 75
+
+
+state 50
+	procheader : IDENT LPAREN params RPAREN .  (19)
+
+	.  reduce 19
+
+
+state 51
+	params : params COMMA param .  (22)
+
+	.  reduce 22
+
+
+state 52
+	param : passspec typespec IDENT .  (25)
+
+	.  reduce 25
+
+
+state 53
+	stmt : IDENT LPAREN . exprs RPAREN SEMICOLON  (39)
+	exprs : .  (56)
+
+	BOOL_CONST  shift 54
+	INT_CONST  shift 55
+	IDENT  shift 56
+	LPAREN  shift 58
+	MINUS  shift 59
+	NOT  shift 60
+	error  reduce 56
+	RPAREN  reduce 56
+	COMMA  reduce 56
+
+	lvalue  goto 61
+	expr  goto 76
+	exprs  goto 77
+
+
+state 54
+	expr : BOOL_CONST .  (58)
+
+	.  reduce 58
+
+
+state 55
+	expr : INT_CONST .  (59)
+
+	.  reduce 59
+
+
+state 56
+	lvalue : IDENT .  (52)
+
+	.  reduce 52
+
+
+state 57
+	stmt : WRITE STRING_CONST . SEMICOLON  (38)
+
+	SEMICOLON  shift 78
+	.  error
+
+
+state 58
+	expr : LPAREN . expr binop expr RPAREN  (62)
+
+	BOOL_CONST  shift 54
+	INT_CONST  shift 55
+	IDENT  shift 56
+	LPAREN  shift 58
+	MINUS  shift 59
+	NOT  shift 60
+	.  error
+
+	lvalue  goto 61
+	expr  goto 79
+
+
+state 59
+	expr : MINUS . expr  (64)
+
+	BOOL_CONST  shift 54
+	INT_CONST  shift 55
+	IDENT  shift 56
+	LPAREN  shift 58
+	MINUS  shift 59
+	NOT  shift 60
+	.  error
+
+	lvalue  goto 61
+	expr  goto 80
+
+
+state 60
+	expr : NOT . expr  (63)
+
+	BOOL_CONST  shift 54
+	INT_CONST  shift 55
+	IDENT  shift 56
+	LPAREN  shift 58
+	MINUS  shift 59
+	NOT  shift 60
+	.  error
+
+	lvalue  goto 61
+	expr  goto 81
+
+
+state 61
+	lvalue : lvalue . PERIOD IDENT  (53)
+	expr : lvalue .  (60)
+
+	PERIOD  shift 70
+	error  reduce 60
+	RPAREN  reduce 60
+	RBRAC  reduce 60
+	EQ  reduce 60
+	LT  reduce 60
+	GT  reduce 60
+	GTE  reduce 60
+	LTE  reduce 60
+	NEQ  reduce 60
+	PLUS  reduce 60
+	MINUS  reduce 60
+	MUL  reduce 60
+	DIV  reduce 60
+	SEMICOLON  reduce 60
+	COMMA  reduce 60
+	AND  reduce 60
+	OR  reduce 60
+	DO  reduce 60
+	THEN  reduce 60
+
+
+state 62
+	stmt : WRITE expr . SEMICOLON  (37)
+	expr : expr . binop expr  (61)
+
+	EQ  shift 82
+	LT  shift 83
+	GT  shift 84
+	GTE  shift 85
+	LTE  shift 86
+	NEQ  shift 87
+	PLUS  shift 88
+	MINUS  shift 89
+	MUL  shift 90
+	DIV  shift 91
+	SEMICOLON  shift 92
+	AND  shift 93
+	OR  shift 94
+	.  error
+
+	binop  goto 95
+
+
+state 63
+	stmt : READ lvalue . SEMICOLON  (36)
+	lvalue : lvalue . PERIOD IDENT  (53)
+
+	SEMICOLON  shift 96
+	PERIOD  shift 70
+	.  error
+
+
+state 64
+	stmt : WHILE expr . DO stmts OD  (42)
+	expr : expr . binop expr  (61)
+
+	EQ  shift 82
+	LT  shift 83
+	GT  shift 84
+	GTE  shift 85
+	LTE  shift 86
+	NEQ  shift 87
+	PLUS  shift 88
+	MINUS  shift 89
+	MUL  shift 90
+	DIV  shift 91
+	AND  shift 93
+	OR  shift 94
+	DO  shift 97
+	.  error
+
+	binop  goto 95
+
+
+state 65
+	stmt : IF expr . THEN stmts FI  (40)
+	stmt : IF expr . THEN stmts ELSE stmts FI  (41)
+	expr : expr . binop expr  (61)
+
+	EQ  shift 82
+	LT  shift 83
+	GT  shift 84
+	GTE  shift 85
+	LTE  shift 86
+	NEQ  shift 87
+	PLUS  shift 88
+	MINUS  shift 89
+	MUL  shift 90
+	DIV  shift 91
+	AND  shift 93
+	OR  shift 94
+	THEN  shift 98
+	.  error
+
+	binop  goto 95
+
+
+state 66
+	vardecl : typespec IDENT . SEMICOLON  (31)
+
+	SEMICOLON  shift 99
+	.  error
+
+
+state 67
+	stmt : IDENT . LPAREN exprs RPAREN SEMICOLON  (39)
+	lvalue : IDENT .  (52)
+
+	LPAREN  shift 53
+	ASSIGN  reduce 52
+	PERIOD  reduce 52
+
+
+state 68
+	stmts : stmts stmt .  (32)
+
+	.  reduce 32
+
+
+state 69
+	stmt : lvalue ASSIGN . rvalue SEMICOLON  (35)
+	rvalue : .  (46)
+
+	BOOL_CONST  shift 54
+	INT_CONST  shift 55
+	IDENT  shift 56
+	LPAREN  shift 58
+	LBRAC  shift 100
+	MINUS  shift 59
+	NOT  shift 60
+	UNKNOWN  shift 101
+	SEMICOLON  reduce 46
+
+	lvalue  goto 61
+	rvalue  goto 102
+	expr  goto 103
+
+
+state 70
+	lvalue : lvalue PERIOD . IDENT  (53)
+
+	IDENT  shift 104
+	.  error
+
+
+state 71
+	fielddef : IDENT COLON error .  (11)
+
+	.  reduce 11
+
+
+state 72
+	fielddef : IDENT COLON typespec .  (9)
+
+	.  reduce 9
+
+
+state 73
+	fielddef : UNKNOWN COLON typespec .  (10)
+
+	.  reduce 10
+
+
+state 74
+	fielddefs : fielddefs SEMICOLON fielddef .  (14)
+
+	.  reduce 14
+
+
+state 75
+	fielddefs : fielddefs COMMA fielddef .  (12)
+
+	.  reduce 12
+
+
+state 76
+	exprs : expr .  (55)
+	expr : expr . binop expr  (61)
+
+	EQ  shift 82
+	LT  shift 83
+	GT  shift 84
+	GTE  shift 85
+	LTE  shift 86
+	NEQ  shift 87
+	PLUS  shift 88
+	MINUS  shift 89
+	MUL  shift 90
+	DIV  shift 91
+	AND  shift 93
+	OR  shift 94
+	error  reduce 55
+	RPAREN  reduce 55
+	COMMA  reduce 55
+
+	binop  goto 95
+
+
+state 77
+	stmt : IDENT LPAREN exprs . RPAREN SEMICOLON  (39)
+	exprs : exprs . COMMA expr  (54)
+	exprs : exprs . error expr  (57)
+
+	error  shift 105
+	RPAREN  shift 106
+	COMMA  shift 107
+	.  error
+
+
+state 78
+	stmt : WRITE STRING_CONST SEMICOLON .  (38)
+
+	.  reduce 38
+
+
+state 79
+	expr : expr . binop expr  (61)
+	expr : LPAREN expr . binop expr RPAREN  (62)
+
+	EQ  shift 82
+	LT  shift 83
+	GT  shift 84
+	GTE  shift 85
+	LTE  shift 86
+	NEQ  shift 87
+	PLUS  shift 88
+	MINUS  shift 89
+	MUL  shift 90
+	DIV  shift 91
+	AND  shift 93
+	OR  shift 94
+	.  error
+
+	binop  goto 108
+
+
+80: shift/reduce conflict (shift 93, reduce 64) on AND
+80: shift/reduce conflict (shift 94, reduce 64) on OR
+state 80
+	expr : expr . binop expr  (61)
+	expr : MINUS expr .  (64)
+
+	AND  shift 93
+	OR  shift 94
+	error  reduce 64
+	RPAREN  reduce 64
+	RBRAC  reduce 64
+	EQ  reduce 64
+	LT  reduce 64
+	GT  reduce 64
+	GTE  reduce 64
+	LTE  reduce 64
+	NEQ  reduce 64
+	PLUS  reduce 64
+	MINUS  reduce 64
+	MUL  reduce 64
+	DIV  reduce 64
+	SEMICOLON  reduce 64
+	COMMA  reduce 64
+	DO  reduce 64
+	THEN  reduce 64
+
+	binop  goto 95
+
+
+81: shift/reduce conflict (shift 82, reduce 63) on EQ
+81: shift/reduce conflict (shift 83, reduce 63) on LT
+81: shift/reduce conflict (shift 84, reduce 63) on GT
+81: shift/reduce conflict (shift 85, reduce 63) on GTE
+81: shift/reduce conflict (shift 86, reduce 63) on LTE
+81: shift/reduce conflict (shift 87, reduce 63) on NEQ
+81: shift/reduce conflict (shift 88, reduce 63) on PLUS
+81: shift/reduce conflict (shift 89, reduce 63) on MINUS
+81: shift/reduce conflict (shift 90, reduce 63) on MUL
+81: shift/reduce conflict (shift 91, reduce 63) on DIV
+81: shift/reduce conflict (shift 93, reduce 63) on AND
+81: shift/reduce conflict (shift 94, reduce 63) on OR
+state 81
+	expr : expr . binop expr  (61)
+	expr : NOT expr .  (63)
+
+	EQ  shift 82
+	LT  shift 83
+	GT  shift 84
+	GTE  shift 85
+	LTE  shift 86
+	NEQ  shift 87
+	PLUS  shift 88
+	MINUS  shift 89
+	MUL  shift 90
+	DIV  shift 91
+	AND  shift 93
+	OR  shift 94
+	error  reduce 63
+	RPAREN  reduce 63
+	RBRAC  reduce 63
+	SEMICOLON  reduce 63
+	COMMA  reduce 63
+	DO  reduce 63
+	THEN  reduce 63
+
+	binop  goto 95
+
+
+state 82
+	binop : EQ .  (69)
+
+	.  reduce 69
+
+
+state 83
+	binop : LT .  (71)
+
+	.  reduce 71
+
+
+state 84
+	binop : GT .  (72)
+
+	.  reduce 72
+
+
+85: reduce/reduce conflict (reduce 74, reduce 78) on BOOL_CONST
+85: reduce/reduce conflict (reduce 74, reduce 78) on INT_CONST
+85: reduce/reduce conflict (reduce 74, reduce 78) on IDENT
+85: reduce/reduce conflict (reduce 74, reduce 78) on LPAREN
+85: reduce/reduce conflict (reduce 74, reduce 78) on MINUS
+85: reduce/reduce conflict (reduce 74, reduce 78) on NOT
+state 85
+	binop : GTE .  (74)
+	binop : GTE .  (78)
+
+	.  reduce 74
+
+
+86: reduce/reduce conflict (reduce 73, reduce 77) on BOOL_CONST
+86: reduce/reduce conflict (reduce 73, reduce 77) on INT_CONST
+86: reduce/reduce conflict (reduce 73, reduce 77) on IDENT
+86: reduce/reduce conflict (reduce 73, reduce 77) on LPAREN
+86: reduce/reduce conflict (reduce 73, reduce 77) on MINUS
+86: reduce/reduce conflict (reduce 73, reduce 77) on NOT
+state 86
+	binop : LTE .  (73)
+	binop : LTE .  (77)
+
+	.  reduce 73
+
+
+state 87
+	binop : NEQ .  (70)
+
+	.  reduce 70
+
+
+state 88
+	binop : PLUS .  (66)
+
+	.  reduce 66
+
+
+state 89
+	binop : MINUS .  (65)
+
+	.  reduce 65
+
+
+state 90
+	binop : MUL .  (67)
+
+	.  reduce 67
+
+
+state 91
+	binop : DIV .  (68)
+
+	.  reduce 68
+
+
+state 92
+	stmt : WRITE expr SEMICOLON .  (37)
+
+	.  reduce 37
+
+
+93: reduce/reduce conflict (reduce 76, reduce 80) on BOOL_CONST
+93: reduce/reduce conflict (reduce 76, reduce 80) on INT_CONST
+93: reduce/reduce conflict (reduce 76, reduce 80) on IDENT
+93: reduce/reduce conflict (reduce 76, reduce 80) on LPAREN
+93: reduce/reduce conflict (reduce 76, reduce 80) on MINUS
+93: reduce/reduce conflict (reduce 76, reduce 80) on NOT
+state 93
+	binop : AND .  (76)
+	binop : AND .  (80)
+
+	.  reduce 76
+
+
+94: reduce/reduce conflict (reduce 75, reduce 79) on BOOL_CONST
+94: reduce/reduce conflict (reduce 75, reduce 79) on INT_CONST
+94: reduce/reduce conflict (reduce 75, reduce 79) on IDENT
+94: reduce/reduce conflict (reduce 75, reduce 79) on LPAREN
+94: reduce/reduce conflict (reduce 75, reduce 79) on MINUS
+94: reduce/reduce conflict (reduce 75, reduce 79) on NOT
+state 94
+	binop : OR .  (75)
+	binop : OR .  (79)
+
+	.  reduce 75
+
+
+state 95
+	expr : expr binop . expr  (61)
+
+	BOOL_CONST  shift 54
+	INT_CONST  shift 55
+	IDENT  shift 56
+	LPAREN  shift 58
+	MINUS  shift 59
+	NOT  shift 60
+	.  error
+
+	lvalue  goto 61
+	expr  goto 109
+
+
+state 96
+	stmt : READ lvalue SEMICOLON .  (36)
+
+	.  reduce 36
+
+
+97: shift/reduce conflict (shift 67, reduce 34) on IDENT
+97: shift/reduce conflict (shift 36, reduce 34) on WRITE
+97: shift/reduce conflict (shift 37, reduce 34) on READ
+97: shift/reduce conflict (shift 38, reduce 34) on WHILE
+97: shift/reduce conflict (shift 39, reduce 34) on IF
+state 97
+	stmt : WHILE expr DO . stmts OD  (42)
+	stmts : .  (34)
+
+	IDENT  shift 67
+	WRITE  shift 36
+	READ  shift 37
+	WHILE  shift 38
+	IF  shift 39
+	OD  reduce 34
+
+	stmts  goto 110
+	stmt  goto 43
+	lvalue  goto 44
+
+
+98: shift/reduce conflict (shift 67, reduce 34) on IDENT
+98: shift/reduce conflict (shift 36, reduce 34) on WRITE
+98: shift/reduce conflict (shift 37, reduce 34) on READ
+98: shift/reduce conflict (shift 38, reduce 34) on WHILE
+98: shift/reduce conflict (shift 39, reduce 34) on IF
+state 98
+	stmt : IF expr THEN . stmts FI  (40)
+	stmt : IF expr THEN . stmts ELSE stmts FI  (41)
+	stmts : .  (34)
+
+	IDENT  shift 67
+	WRITE  shift 36
+	READ  shift 37
+	WHILE  shift 38
+	IF  shift 39
+	ELSE  reduce 34
+	FI  reduce 34
+
+	stmts  goto 111
+	stmt  goto 43
+	lvalue  goto 44
+
+
+state 99
+	vardecl : typespec IDENT SEMICOLON .  (31)
+
+	.  reduce 31
+
+
+state 100
+	rvalue : LBRAC . fieldinits RBRAC  (44)
+	fieldinits : .  (49)
+
+	IDENT  shift 112
+	error  reduce 49
+	RBRAC  reduce 49
+	COMMA  reduce 49
+
+	fieldinits  goto 113
+	fieldinit  goto 114
+
+
+state 101
+	rvalue : UNKNOWN .  (45)
+
+	.  reduce 45
+
+
+state 102
+	stmt : lvalue ASSIGN rvalue . SEMICOLON  (35)
+
+	SEMICOLON  shift 115
+	.  error
+
+
+state 103
+	rvalue : expr .  (43)
+	expr : expr . binop expr  (61)
+
+	EQ  shift 82
+	LT  shift 83
+	GT  shift 84
+	GTE  shift 85
+	LTE  shift 86
+	NEQ  shift 87
+	PLUS  shift 88
+	MINUS  shift 89
+	MUL  shift 90
+	DIV  shift 91
+	AND  shift 93
+	OR  shift 94
+	error  reduce 43
+	RBRAC  reduce 43
+	SEMICOLON  reduce 43
+	COMMA  reduce 43
+
+	binop  goto 95
+
+
+state 104
+	lvalue : lvalue PERIOD IDENT .  (53)
+
+	.  reduce 53
+
+
+state 105
+	exprs : exprs error . expr  (57)
+
+	BOOL_CONST  shift 54
+	INT_CONST  shift 55
+	IDENT  shift 56
+	LPAREN  shift 58
+	MINUS  shift 59
+	NOT  shift 60
+	.  error
+
+	lvalue  goto 61
+	expr  goto 116
+
+
+state 106
+	stmt : IDENT LPAREN exprs RPAREN . SEMICOLON  (39)
+
+	SEMICOLON  shift 117
+	.  error
+
+
+state 107
+	exprs : exprs COMMA . expr  (54)
+
+	BOOL_CONST  shift 54
+	INT_CONST  shift 55
+	IDENT  shift 56
+	LPAREN  shift 58
+	MINUS  shift 59
+	NOT  shift 60
+	.  error
+
+	lvalue  goto 61
+	expr  goto 118
+
+
+state 108
+	expr : expr binop . expr  (61)
+	expr : LPAREN expr binop . expr RPAREN  (62)
+
+	BOOL_CONST  shift 54
+	INT_CONST  shift 55
+	IDENT  shift 56
+	LPAREN  shift 58
+	MINUS  shift 59
+	NOT  shift 60
+	.  error
+
+	lvalue  goto 61
+	expr  goto 119
+
+
+109: shift/reduce conflict (shift 82, reduce 61) on EQ
+109: shift/reduce conflict (shift 83, reduce 61) on LT
+109: shift/reduce conflict (shift 84, reduce 61) on GT
+109: shift/reduce conflict (shift 85, reduce 61) on GTE
+109: shift/reduce conflict (shift 86, reduce 61) on LTE
+109: shift/reduce conflict (shift 87, reduce 61) on NEQ
+109: shift/reduce conflict (shift 88, reduce 61) on PLUS
+109: shift/reduce conflict (shift 89, reduce 61) on MINUS
+109: shift/reduce conflict (shift 90, reduce 61) on MUL
+109: shift/reduce conflict (shift 91, reduce 61) on DIV
+109: shift/reduce conflict (shift 93, reduce 61) on AND
+109: shift/reduce conflict (shift 94, reduce 61) on OR
+state 109
+	expr : expr . binop expr  (61)
+	expr : expr binop expr .  (61)
+
+	EQ  shift 82
+	LT  shift 83
+	GT  shift 84
+	GTE  shift 85
+	LTE  shift 86
+	NEQ  shift 87
+	PLUS  shift 88
+	MINUS  shift 89
+	MUL  shift 90
+	DIV  shift 91
+	AND  shift 93
+	OR  shift 94
+	error  reduce 61
+	RPAREN  reduce 61
+	RBRAC  reduce 61
+	SEMICOLON  reduce 61
+	COMMA  reduce 61
+	DO  reduce 61
+	THEN  reduce 61
+
+	binop  goto 95
+
+
+state 110
+	stmts : stmts . stmt  (32)
+	stmt : WHILE expr DO stmts . OD  (42)
+
+	IDENT  shift 67
+	WRITE  shift 36
+	READ  shift 37
+	WHILE  shift 38
+	OD  shift 120
+	IF  shift 39
+	.  error
+
+	stmt  goto 68
+	lvalue  goto 44
+
+
+state 111
+	stmts : stmts . stmt  (32)
+	stmt : IF expr THEN stmts . FI  (40)
+	stmt : IF expr THEN stmts . ELSE stmts FI  (41)
+
+	IDENT  shift 67
+	WRITE  shift 36
+	READ  shift 37
+	WHILE  shift 38
+	IF  shift 39
+	ELSE  shift 121
+	FI  shift 122
+	.  error
+
+	stmt  goto 68
+	lvalue  goto 44
+
+
+state 112
+	fieldinit : IDENT . EQ rvalue  (51)
+
+	EQ  shift 123
+	.  error
+
+
+state 113
+	rvalue : LBRAC fieldinits . RBRAC  (44)
+	fieldinits : fieldinits . COMMA fieldinit  (47)
+	fieldinits : fieldinits . error fieldinit  (50)
+
+	error  shift 124
+	RBRAC  shift 125
+	COMMA  shift 126
+	.  error
+
+
+state 114
+	fieldinits : fieldinit .  (48)
+
+	.  reduce 48
+
+
+state 115
+	stmt : lvalue ASSIGN rvalue SEMICOLON .  (35)
+
+	.  reduce 35
+
+
+state 116
+	exprs : exprs error expr .  (57)
+	expr : expr . binop expr  (61)
+
+	EQ  shift 82
+	LT  shift 83
+	GT  shift 84
+	GTE  shift 85
+	LTE  shift 86
+	NEQ  shift 87
+	PLUS  shift 88
+	MINUS  shift 89
+	MUL  shift 90
+	DIV  shift 91
+	AND  shift 93
+	OR  shift 94
+	error  reduce 57
+	RPAREN  reduce 57
+	COMMA  reduce 57
+
+	binop  goto 95
+
+
+state 117
+	stmt : IDENT LPAREN exprs RPAREN SEMICOLON .  (39)
+
+	.  reduce 39
+
+
+state 118
+	exprs : exprs COMMA expr .  (54)
+	expr : expr . binop expr  (61)
+
+	EQ  shift 82
+	LT  shift 83
+	GT  shift 84
+	GTE  shift 85
+	LTE  shift 86
+	NEQ  shift 87
+	PLUS  shift 88
+	MINUS  shift 89
+	MUL  shift 90
+	DIV  shift 91
+	AND  shift 93
+	OR  shift 94
+	error  reduce 54
+	RPAREN  reduce 54
+	COMMA  reduce 54
+
+	binop  goto 95
+
+
+119: shift/reduce conflict (shift 82, reduce 61) on EQ
+119: shift/reduce conflict (shift 83, reduce 61) on LT
+119: shift/reduce conflict (shift 84, reduce 61) on GT
+119: shift/reduce conflict (shift 85, reduce 61) on GTE
+119: shift/reduce conflict (shift 86, reduce 61) on LTE
+119: shift/reduce conflict (shift 87, reduce 61) on NEQ
+119: shift/reduce conflict (shift 88, reduce 61) on PLUS
+119: shift/reduce conflict (shift 89, reduce 61) on MINUS
+119: shift/reduce conflict (shift 90, reduce 61) on MUL
+119: shift/reduce conflict (shift 91, reduce 61) on DIV
+119: shift/reduce conflict (shift 93, reduce 61) on AND
+119: shift/reduce conflict (shift 94, reduce 61) on OR
+state 119
+	expr : expr . binop expr  (61)
+	expr : expr binop expr .  (61)
+	expr : LPAREN expr binop expr . RPAREN  (62)
+
+	RPAREN  shift 127
+	EQ  shift 82
+	LT  shift 83
+	GT  shift 84
+	GTE  shift 85
+	LTE  shift 86
+	NEQ  shift 87
+	PLUS  shift 88
+	MINUS  shift 89
+	MUL  shift 90
+	DIV  shift 91
+	AND  shift 93
+	OR  shift 94
+
+	binop  goto 95
+
+
+state 120
+	stmt : WHILE expr DO stmts OD .  (42)
+
+	.  reduce 42
+
+
+121: shift/reduce conflict (shift 67, reduce 34) on IDENT
+121: shift/reduce conflict (shift 36, reduce 34) on WRITE
+121: shift/reduce conflict (shift 37, reduce 34) on READ
+121: shift/reduce conflict (shift 38, reduce 34) on WHILE
+121: shift/reduce conflict (shift 39, reduce 34) on IF
+state 121
+	stmt : IF expr THEN stmts ELSE . stmts FI  (41)
+	stmts : .  (34)
+
+	IDENT  shift 67
+	WRITE  shift 36
+	READ  shift 37
+	WHILE  shift 38
+	IF  shift 39
+	FI  reduce 34
+
+	stmts  goto 128
+	stmt  goto 43
+	lvalue  goto 44
+
+
+state 122
+	stmt : IF expr THEN stmts FI .  (40)
+
+	.  reduce 40
+
+
+state 123
+	fieldinit : IDENT EQ . rvalue  (51)
+	rvalue : .  (46)
+
+	BOOL_CONST  shift 54
+	INT_CONST  shift 55
+	IDENT  shift 56
+	LPAREN  shift 58
+	LBRAC  shift 100
+	MINUS  shift 59
+	NOT  shift 60
+	UNKNOWN  shift 101
+	error  reduce 46
+	RBRAC  reduce 46
+	COMMA  reduce 46
+
+	lvalue  goto 61
+	rvalue  goto 129
+	expr  goto 103
+
+
+state 124
+	fieldinits : fieldinits error . fieldinit  (50)
+
+	IDENT  shift 112
+	.  error
+
+	fieldinit  goto 130
+
+
+state 125
+	rvalue : LBRAC fieldinits RBRAC .  (44)
+
+	.  reduce 44
+
+
+state 126
+	fieldinits : fieldinits COMMA . fieldinit  (47)
+
+	IDENT  shift 112
+	.  error
+
+	fieldinit  goto 131
+
+
+state 127
+	expr : LPAREN expr binop expr RPAREN .  (62)
+
+	.  reduce 62
+
+
+state 128
+	stmts : stmts . stmt  (32)
+	stmt : IF expr THEN stmts ELSE stmts . FI  (41)
+
+	IDENT  shift 67
+	WRITE  shift 36
+	READ  shift 37
+	WHILE  shift 38
+	IF  shift 39
+	FI  shift 132
+	.  error
+
+	stmt  goto 68
+	lvalue  goto 44
+
+
+state 129
+	fieldinit : IDENT EQ rvalue .  (51)
+
+	.  reduce 51
+
+
+state 130
+	fieldinits : fieldinits error fieldinit .  (50)
+
+	.  reduce 50
+
+
+state 131
+	fieldinits : fieldinits COMMA fieldinit .  (47)
+
+	.  reduce 47
+
+
+state 132
+	stmt : IF expr THEN stmts ELSE stmts FI .  (41)
+
+	.  reduce 41
+
+
+Rules never reduced:
+	binop : LTE  (77)
+	binop : GTE  (78)
+	binop : OR  (79)
+	binop : AND  (80)
+
+
+State 25 contains 5 shift/reduce conflicts.
+State 80 contains 2 shift/reduce conflicts.
+State 81 contains 12 shift/reduce conflicts.
+State 85 contains 6 reduce/reduce conflicts.
+State 86 contains 6 reduce/reduce conflicts.
+State 93 contains 6 reduce/reduce conflicts.
+State 94 contains 6 reduce/reduce conflicts.
+State 97 contains 5 shift/reduce conflicts.
+State 98 contains 5 shift/reduce conflicts.
+State 109 contains 12 shift/reduce conflicts.
+State 119 contains 12 shift/reduce conflicts.
+State 121 contains 5 shift/reduce conflicts.
+
+
+48 terminals, 26 nonterminals
+82 grammar rules, 133 states
