@@ -43,23 +43,39 @@ and pp_lfield fmt (lvalue,id)=
     fprintf fmt ".%s" id
 
 let precedence = function
-    | Ebinop(_,Op_add,_)->1
-    | Ebinop(_,Op_sub,_)->1
-    | Ebinop(_,Op_mul,_)->2
-    | Ebinop(_,Op_div,_)->2
-    | Eunop(Op_minus,_)->3
+    | Ebinop(_,Op_mul,_)->6
+    | Ebinop(_,Op_lte,_)->6
+    | Ebinop(_,Op_add,_)->5
+    | Ebinop(_,Op_sub,_)->5
+    | Ebinop(_,Op_lt,_)->4
+    | Ebinop(_,Op_lte,_)->4
+    | Ebinop(_,Op_gte,_)->4
+    | Ebinop(_,Op_gt,_)->4
+    | Ebinop(_,Op_neq,_)->4
+    | Ebinop(_,Op_eq,_)->4
+    | Ebinop(_,Op_and,_)->2
+    | Ebinop(_,Op_or,_)->1
+    | Eunop(Op_minus,_)->7
     | Eunop(Op_not,_)->3
     | _->0
 
 let precedence_op = function
-    | Op_add->1
-    | Op_sub->1
-    | Op_mul->2
-    | Op_div->2
+    | Op_mul->6
+    | Op_div->6
+    | Op_add->5
+    | Op_sub->5
+    | Op_lte->4
+    | Op_lt->4
+    | Op_gte->4
+    | Op_gt->4
+    | Op_neq->4
+    | Op_eq->4
+    | Op_and->2
+    | Op_or->1
     | _ -> 0
 
 let precedence_uop = function
-    | Op_minus->3
+    | Op_minus->7
     | Op_not->3
     | _ -> 0
 
@@ -108,6 +124,8 @@ and pp_unop fmt (unop, expr)=
         );
     match expr with
         Eint(i)->pp_int fmt i
+      | Elval(lva)->pp_lvalue fmt lva
+      | Eunop(v)->pp_unop fmt v
       | _ ->fprintf fmt "(";
             pp_expr fmt true expr;
             fprintf fmt ")"
