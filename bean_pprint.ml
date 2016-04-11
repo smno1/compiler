@@ -93,6 +93,7 @@ and pp_binop fmt (expr1, binop, expr2)=
     (if lpre < precedence_op binop && lpre <>0 then
         match expr1 with
           | Ebinop(pbinop) -> pp_pbinop fmt pbinop
+          | Eunop(punop) -> pp_punop fmt punop
           | _ ->()
     else
         pp_expr fmt true expr1);
@@ -129,10 +130,13 @@ and pp_unop fmt (unop, expr)=
       | _ ->fprintf fmt "(";
             pp_expr fmt true expr;
             fprintf fmt ")"
-    
 and pp_pbinop fmt pbinop=
     fprintf fmt "(";
     pp_binop fmt pbinop;
+    fprintf fmt ")"    
+and pp_punop fmt punop=
+    fprintf fmt "(";
+    pp_unop fmt punop;
     fprintf fmt ")"
 
 
