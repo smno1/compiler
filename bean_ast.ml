@@ -20,7 +20,6 @@ type expr =
   | Elval of lvalue
   | Ebinop of (expr * binop * expr)
   | Eunop of (unop * expr)
-  | Pebinop of (expr * binop * expr)
 
 (* Mutually recursive type definition *)
 type rvalue =
