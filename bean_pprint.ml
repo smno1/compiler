@@ -43,10 +43,12 @@ and pp_lfield fmt (lvalue,id)=
     fprintf fmt ".%s" id
 
 let precedence = function
-    | Pebinop(_,Op_add,_)->1
-    | Pebinop(_,Op_sub,_)->1
-    | Pebinop(_,Op_mul,_)->2
-    | Pebinop(_,Op_div,_)->2
+    | Ebinop(_,Op_add,_)->1
+    | Ebinop(_,Op_sub,_)->1
+    | Ebinop(_,Op_mul,_)->2
+    | Ebinop(_,Op_div,_)->2
+    | Eunop(Op_minus,_)->3
+    | Eunop(Op_not,_)->3
     | _->0
 
 let precedence_op = function
@@ -54,6 +56,11 @@ let precedence_op = function
     | Op_sub->1
     | Op_mul->2
     | Op_div->2
+    | _ -> 0
+
+let precedence_uop = function
+    | Op_minus->3
+    | Op_not->3
     | _ -> 0
 
 let rec pp_expr fmt first expr=
@@ -65,12 +72,11 @@ let rec pp_expr fmt first expr=
       | Elval(lva)-> pp_lvalue fmt lva
       | Ebinop(binop)->pp_binop fmt binop
       | Eunop(unop)->pp_unop fmt unop
-      | Pebinop(pbinop)->pp_binop fmt pbinop
 and pp_binop fmt (expr1, binop, expr2)=
     let lpre=precedence expr1 in
     (if lpre < precedence_op binop && lpre <>0 then
         match expr1 with
-          | Pebinop(pbinop) -> pp_pbinop fmt pbinop
+          | Ebinop(pbinop) -> pp_pbinop fmt pbinop
           | _ ->()
     else
         pp_expr fmt true expr1);
@@ -89,9 +95,9 @@ and pp_binop fmt (expr1, binop, expr2)=
       | Op_and-> fprintf fmt " and "
       | Op_or-> fprintf fmt " or " );
     let rpre=precedence expr2 in
-    if rpre < precedence_op binop && rpre <>0 then
+    if rpre <= precedence_op binop && rpre <>0 then
         match expr2 with
-          | Pebinop(pbinop) -> pp_pbinop fmt pbinop
+          | Ebinop(pbinop) -> pp_pbinop fmt pbinop
           | _ ->()
     else
         pp_expr fmt true expr2
@@ -100,12 +106,16 @@ and pp_unop fmt (unop, expr)=
         Op_minus-> fprintf fmt "-"
       | Op_not  -> fprintf fmt "not "
         );
-    pp_expr fmt true expr
+    match expr with
+        Eint(i)->pp_int fmt i
+      | _ ->fprintf fmt "(";
+            pp_expr fmt true expr;
+            fprintf fmt ")"
+    
 and pp_pbinop fmt pbinop=
     fprintf fmt "(";
     pp_binop fmt pbinop;
     fprintf fmt ")"
-
 
 
 let rec pp_rvalue fmt rvalue=

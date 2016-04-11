@@ -28,10 +28,11 @@ int n;
 		m := n;
 		while m>0 do
 			if m>0 then
-				n := n - 1;
+				n := -(n - 1);
 				m := m - 1;
 				if m = 0 then p(n); fi
 		   else m := (n - m)*(2*4);
-		   	    m := m - 1  ;
+		   	    m := (((((m - 1)))))  ;
+		   	    m := (((-(3+2*(m - 1)))))  ;
 fi od od
 end
