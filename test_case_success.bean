@@ -38,5 +38,9 @@ int n;
 		   	    m := (((((m - 1)))))  ;
 		   	    m := (((-(3+2*(m - 1)))))  ;
 		   	    n := (not x) !=y;
+		   	    y := 2*(n/2);
+		   	    if 2*(n/2)=n then
+		   	    	n:=1;
+		   	    fi
 fi od od
 end

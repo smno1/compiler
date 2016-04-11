@@ -44,7 +44,7 @@ and pp_lfield fmt (lvalue,id)=
 
 let precedence = function
     | Ebinop(_,Op_mul,_)->6
-    | Ebinop(_,Op_lte,_)->6
+    | Ebinop(_,Op_div,_)->6
     | Ebinop(_,Op_add,_)->5
     | Ebinop(_,Op_sub,_)->5
     | Ebinop(_,Op_lt,_)->4
@@ -190,6 +190,7 @@ let rec pp_stmt fmt first stmt=
       | Write(wexpr)-> pp_write fmt wexpr
       | WriteS(ws)-> fprintf fmt "write %s;" ws
       | Call(c)-> pp_call fmt c
+      | IfThen(ifth)-> pp_if_then fmt ifth
       | IfThen(ifth)-> pp_if_then fmt ifth
       | IfThenElse(ifte)->pp_if_then_else fmt ifte
       | While(w)-> pp_while fmt w
