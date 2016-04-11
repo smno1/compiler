@@ -126,6 +126,7 @@ and pp_unop fmt (unop, expr)=
     match expr with
         Eint(i)->pp_int fmt i
       | Elval(lva)->pp_lvalue fmt lva
+      | Ebool(b)-> pp_bool fmt b
       | Eunop(v)->pp_unop fmt v
       | _ ->fprintf fmt "(";
             pp_expr fmt true expr;
