@@ -1,3 +1,8 @@
+/* -------------------------------------------------------- */
+/* This is the parser definition file, which defines the    */
+/* grammar rules for the bean language. Additionally, it    */
+/* defines minor error reporting functions.                 */
+/* -------------------------------------------------------- */
 %{
 open Bean_ast
 

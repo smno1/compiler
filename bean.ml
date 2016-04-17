@@ -1,3 +1,9 @@
+(* --------------------------------------------- *)
+(* Main file of the bean compiler, which calls   *)
+(* the ocamllex and ocamlyacc to do their job    *)
+(* Also to mention, this version works for ocaml *)
+(* 3.11.2                                        *)
+(* --------------------------------------------- *)
 module P = Bean_parse
 module F = Format
 module PP = Bean_pprint
