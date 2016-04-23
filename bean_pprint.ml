@@ -1,8 +1,47 @@
 open Bean_ast
 open Format
 
+let binop_str = function
+    | Op_add-> " + "
+    | Op_sub-> " - "
+    | Op_mul-> " * "
+    | Op_div-> " / "
+    | Op_eq-> " = "
+    | Op_neq-> " != "
+    | Op_lt-> " < "
+    | Op_gt-> " > "
+    | Op_lte-> " <= "
+    | Op_gte-> " >= "
+    | Op_and-> " and "
+    | Op_or-> " or " 
+
+let precedence = function
+    | Ebinop(_,Op_mul,_) | Ebinop(_,Op_div,_)->6
+    | Ebinop(_,Op_add,_) | Ebinop(_,Op_sub,_)->5
+    | Ebinop(_,Op_lt,_) | Ebinop(_,Op_lte,_) | Ebinop(_,Op_gte,_) | Ebinop(_,Op_gt,_) | Ebinop(_,Op_neq,_) | Ebinop(_,Op_eq,_)->4
+    | Ebinop(_,Op_and,_)->2
+    | Ebinop(_,Op_or,_)->1
+    | Eunop(Op_minus,_)->7
+    | Eunop(Op_not,_)->3
+    | _->0
+
+let precedence_op = function
+    | Op_mul | Op_div->6
+    | Op_add| Op_sub->5
+    | Op_lte | Op_lt | Op_gte | Op_gt | Op_neq | Op_eq->4
+    | Op_and->2
+    | Op_or->1
+    | _ -> 0
+
+let precedence_uop = function
+    | Op_minus->7
+    | Op_not->3
+    | _ -> 0
+
 let pp_int fmt x=fprintf fmt "%d" x
+
 let pp_string fmt x = fprintf fmt "%s" x
+
 let pp_bool fmt x = fprintf fmt "%b" x
 
 let rec pp_typespec fmt typespec=
@@ -11,13 +50,11 @@ let rec pp_typespec fmt typespec=
       | Int -> fprintf fmt "int"
       | Flist(flst)-> pp_fielddef_lst fmt flst
       | Id(id)-> pp_string fmt id
-
 and pp_fielddef fmt first (id,typespec)=
     if not first then
         fprintf fmt ", ";
     fprintf fmt "%s : " id;
     pp_typespec fmt typespec
-
 and pp_fielddef_lst fmt (first::flst)=
     fprintf fmt "{";
     pp_fielddef fmt true first;
@@ -28,7 +65,6 @@ let pp_typedef fmt (typespec,ident)=
     fprintf fmt "typedef ";
     pp_typespec fmt typespec;
     fprintf fmt " %s@," ident
-
 
 let pp_vardecl fmt (typespec,ident)=
     pp_typespec fmt typespec;
@@ -42,44 +78,8 @@ and pp_lfield fmt (lvalue,id)=
     pp_lvalue fmt lvalue;
     fprintf fmt ".%s" id
 
-let precedence = function
-    | Ebinop(_,Op_mul,_)->6
-    | Ebinop(_,Op_div,_)->6
-    | Ebinop(_,Op_add,_)->5
-    | Ebinop(_,Op_sub,_)->5
-    | Ebinop(_,Op_lt,_)->4
-    | Ebinop(_,Op_lte,_)->4
-    | Ebinop(_,Op_gte,_)->4
-    | Ebinop(_,Op_gt,_)->4
-    | Ebinop(_,Op_neq,_)->4
-    | Ebinop(_,Op_eq,_)->4
-    | Ebinop(_,Op_and,_)->2
-    | Ebinop(_,Op_or,_)->1
-    | Eunop(Op_minus,_)->7
-    | Eunop(Op_not,_)->3
-    | _->0
-
-let precedence_op = function
-    | Op_mul->6
-    | Op_div->6
-    | Op_add->5
-    | Op_sub->5
-    | Op_lte->4
-    | Op_lt->4
-    | Op_gte->4
-    | Op_gt->4
-    | Op_neq->4
-    | Op_eq->4
-    | Op_and->2
-    | Op_or->1
-    | _ -> 0
-
-let precedence_uop = function
-    | Op_minus->7
-    | Op_not->3
-    | _ -> 0
-
 let rec pp_expr fmt first expr=
+    (* as a flag for sometimes expression should be separate by comma *)
     if not first then 
         fprintf fmt ", ";
     match expr with
@@ -88,7 +88,9 @@ let rec pp_expr fmt first expr=
       | Elval(lva)-> pp_lvalue fmt lva
       | Ebinop(binop)->pp_binop fmt binop
       | Eunop(unop)->pp_unop fmt unop
+(* print the binary operation and strip the unecessary parentheses by comparing the precedence of operator*)
 and pp_binop fmt (expr1, binop, expr2)=
+    (* print left expression *)
     let lpre=precedence expr1 in
     (if lpre < precedence_op binop && lpre <>0 then
         match expr1 with
@@ -97,24 +99,14 @@ and pp_binop fmt (expr1, binop, expr2)=
           | _ ->()
     else
         pp_expr fmt true expr1);
-
-    (match binop with
-        Op_add-> fprintf fmt " + "
-      | Op_sub-> fprintf fmt " - "
-      | Op_mul-> fprintf fmt " * "
-      | Op_div-> fprintf fmt " / "
-      | Op_eq-> fprintf fmt " = "
-      | Op_neq-> fprintf fmt " != "
-      | Op_lt-> fprintf fmt " < "
-      | Op_gt-> fprintf fmt " > "
-      | Op_lte-> fprintf fmt " <= "
-      | Op_gte-> fprintf fmt " >= "
-      | Op_and-> fprintf fmt " and "
-      | Op_or-> fprintf fmt " or " );
+    (* print operator *)
+    pp_string fmt (binop_str binop);
+    (* print right experession *)
     let rpre=precedence expr2 in
     if rpre <= precedence_op binop && rpre <>0 then
         match expr2 with
           | Ebinop(pbinop) -> pp_pbinop fmt pbinop
+          | Eunop(punop) -> pp_punop fmt punop
           | _ ->()
     else
         pp_expr fmt true expr2
@@ -123,14 +115,14 @@ and pp_unop fmt (unop, expr)=
         Op_minus-> fprintf fmt "-"
       | Op_not  -> fprintf fmt "not "
         );
-    match expr with
-        Eint(i)->pp_int fmt i
-      | Elval(lva)->pp_lvalue fmt lva
-      | Ebool(b)-> pp_bool fmt b
-      | Eunop(v)->pp_unop fmt v
-      | _ ->fprintf fmt "(";
-            pp_expr fmt true expr;
-            fprintf fmt ")"
+    let epre=precedence expr in
+    if epre < precedence_uop unop && epre <>0 then
+        match expr with
+          | Ebinop(pbinop) -> pp_pbinop fmt pbinop
+          | Eunop(punop) -> pp_punop fmt punop
+          | _ ->()
+    else
+        pp_expr fmt true expr
 and pp_pbinop fmt pbinop=
     fprintf fmt "(";
     pp_binop fmt pbinop;
@@ -194,7 +186,6 @@ let rec pp_stmt fmt first stmt=
       | IfThen(ifth)-> pp_if_then fmt ifth
       | IfThenElse(ifte)->pp_if_then_else fmt ifte
       | While(w)-> pp_while fmt w
-      (* | _ -> fprintf fmt "stmt" *)
 and pp_if_then fmt (expr, (first::stmtlst))=
     fprintf fmt "if ";
     pp_expr fmt true expr;
