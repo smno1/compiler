@@ -1,4 +1,7 @@
-(* Specification of an AST for bean *)
+(* -------------------------------------------------------- *)
+(* Specification of an AST for bean. This file deals with   *)
+(* type definitions of the syntax tree nodes.               *)
+(* -------------------------------------------------------- *)
 type ident = string
 
 type binop =
@@ -34,6 +37,7 @@ type passspec =
   | Val
   | Ref
 
+(* Mutually recursive type definition *)
 type typespec = 
   | Bool
   | Int

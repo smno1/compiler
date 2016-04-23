@@ -1,3 +1,9 @@
+(* -------------------------------------------------------- *)
+(* Specification of the pretty printer for bean language.   *)
+(* This file defines the format and details for showing the *)
+(* code. Especially, it defines the rules for removing      *)
+(* redundant parens                                         *)
+(* -------------------------------------------------------- *)
 open Bean_ast
 open Format
 
