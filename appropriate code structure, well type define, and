@@ -1,0 +1,15 @@
+appropriate code structure, well type define, and extendable.
+Something to be desired is that string tokens like '(' ' ,'  'if' 'od'  are better to be organized in some constant or match function that will be better maintenance.
+Also, the error such as empty filed should be handled in parse instead in pprint.
+
+
+Fair comment for the file and function and the variable name is appropriate and understandable. However some functions and parse don't have any comment to explain its purpose.  
+
+The indentation is consistence with 2 column in each nested layer and using two lines space between function and one line space for function and its 'and' function. Some thing can be improved is that in the match condition, if the condition operation can be aligned to the same column as begin will largely improve readability.
+
+
+Reading the bean file as the specification suggested and the AST is concise and accurate and in lex organize key word in a separate hash table is a good design to separate concern and good for maintenance. The right order for operation token in parse give them the right precedence. One thing is that I'd like to place the error handler in parse rather than pprint. Because the logic and syntax problem being taken care of by parse is more logical.
+
+work well with 2 custom test files and print things in the standard of specification suggested. For the strip parentheses part, it takes divide as quite special operator for the reason that the sequence of division in the right do matter with the result. But this extra concern is unnecessary since the minus is the same situation so that we can deal them with same function. Also, since the author already mentioned that the sequence do matter so that the plus and multiple should be regarded as the same situation as division and minus. For example, 2.2+(2+2.2) should not be stripped as 2.2+2+2.2 because it do change the sequence. For the mathematic consideration, it doesn't matter but in machine operation sometimes it changes the result.  For example, if the machine operation is under a rule that int+float => int, while float+int=>float, then 2.2+(2+2.2)=2.2+4=6.2 while  2.2+2+2.2=4.2+2.2=6.4
+
+Overall this application is well designed. Also, decent layout and some syntax sugar is quite good to know. However implement error handle in the pprint rather than parse is not really appropriate. Reviewing this application makes me willing pay more attention to make my code concisely and do a decent comment for readability.
