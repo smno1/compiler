@@ -1,7 +1,7 @@
 (* Define the types for each symbol table element *)
 type symbol={identifier:string; slot:string; sym_typespec:string; scope:string; init:bool; sym_size:int }
-type typedef={typename:string;  typespec:string; type_size:int }
-type fielddef={fieldname:string;  field_typespec:string; belong_type:string; field_size:int }
+type typedef={typename:string;  typespec:string; type_size:int; sub_type:bool}
+type fielddef={fieldname:string;  field_typespec:string; belong_type:string; field_size:int; sub_field:bool }
 type proc={procname:string;  proc_typespec:string; proc_size:int }
 
 
@@ -15,8 +15,8 @@ type proc_stack={mutable proc_list : proc list}
 (* default elements *)
 let symbol_not_found={identifier="not_found_404";slot="not_found";sym_typespec="not_found"; 
         scope="not_found";init=false;sym_size=0}
-let typedef_not_found={typename="not_found_404";  typespec="not_found"; type_size=0 }
-let fielddef_not_found={fieldname="not_found_404";  field_typespec="not_found"; belong_type="not_found";field_size=0 }
+let typedef_not_found={typename="not_found_404";  typespec="not_found"; type_size=0; sub_type=false }
+let fielddef_not_found={fieldname="not_found_404";  field_typespec="not_found"; belong_type="not_found";field_size=0;sub_field=false }
 let proc_not_found={procname="not_found_404";  proc_typespec="not_found"; proc_size=0 }
 
 
@@ -41,7 +41,7 @@ let find_proc id =
 
 (* all the `add element` functions *)
 let add_symbol x =
-    if not (List.exists (fun s->s.identifier=x.identifier) symbol_table.symbol_list) then
+    if not (List.exists (fun s->s.identifier=x.identifier; s.scope=x.scope) symbol_table.symbol_list) then
         symbol_table.symbol_list <- x::symbol_table.symbol_list
 
 let add_typedef x =
@@ -49,7 +49,7 @@ let add_typedef x =
         typedef_table.typedef_list <- x::typedef_table.typedef_list
 
 let add_fielddef x =
-    if not (List.exists (fun s->s.fieldname=x.fieldname) fielddef_table.fielddef_list) then
+    if not (List.exists (fun s->s.fieldname=x.fieldname; s.belong_type=x.belong_type) fielddef_table.fielddef_list) then
         fielddef_table.fielddef_list <- x::fielddef_table.fielddef_list
 
 let add_proc x =
@@ -92,3 +92,12 @@ let calc_size_proc proc_name =
     let total_size = ref 0 in
     List.iter (fun x -> total_size := !total_size + (calc_size_type x.sym_typespec)) all_elements;
     !total_size
+(* for id type checking *)
+let look_up_origin_type type_name =
+    let current_type=ref type_name in
+    while (List.exists (fun s-> s.typename = !current_type && s.typename != s.typespec) typedef_table.typedef_list) do
+        current_type := (find_typedef !current_type).typespec
+    done;
+    !current_type
+
+
