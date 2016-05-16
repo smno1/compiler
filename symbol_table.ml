@@ -25,16 +25,6 @@ let typedef_table= {typedef_list=[]}
 let fielddef_table= {fielddef_list=[]}
 let proc_table= {proc_list=[]}
 
-
-(* (* init function *)
-let init symbol_list typedef_list fielddef_list proc_list=
-    symbol_table.symbol_list <- symbol_list;
-    typedef_table.typedef_list <- typedef_list;
-    fielddef_table.fielddef_list <- fielddef_list;
-    proc_table.proc_list <- proc_list *)
-
-
-
 (* all the `find element` functions *)
 let find_symbol id scope =
     try (List.find (fun s->s.identifier=id; s.scope=scope) symbol_table.symbol_list) with Not_found -> symbol_not_found
@@ -67,11 +57,19 @@ let add_proc x =
         proc_table.proc_list <- x::proc_table.proc_list
 
 (* init primitive types *)
-let init_d typedef_list = 
+let init_d () = 
     let int_instance = { typename="int"; typespec="int"; type_size=1 } in 
     let bool_instance = { typename="bool"; typespec="bool"; type_size=1 } in
     add_typedef int_instance;
     add_typedef bool_instance
+
+(* init function *)
+let init ()=
+    symbol_table.symbol_list <- [];
+    typedef_table.typedef_list <- [];
+    fielddef_table.fielddef_list <- [];
+    proc_table.proc_list <- [];
+    init_d()
 
 
 (* `look for all element in certain scope` functions for proc -> symbol and type -> field *)
