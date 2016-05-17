@@ -1,5 +1,5 @@
 (* Define the types for each symbol table element *)
-type symbol={identifier:string; slot:string; sym_typespec:string; scope:string; sym_size:int; pass_by_ref:bool; super_symbol:string }
+type symbol={identifier:string; slot:int; sym_typespec:string; scope:string; sym_size:int; pass_by_ref:bool; super_symbol:string }
 type typedef={typename:string;  typespec:string; type_size:int; sub_type:bool}
 type fielddef={fieldname:string;  field_typespec:string; belong_type:string; field_size:int; sub_field:bool }
 type proc={procname:string; proc_size:int }
@@ -13,7 +13,7 @@ type proc_stack={mutable proc_list : proc list}
 
 
 (* default elements *)
-let symbol_not_found={identifier="not_found_404";slot="not_found";sym_typespec="not_found"; 
+let symbol_not_found={identifier="not_found_404";slot=0;sym_typespec="not_found"; 
         scope="not_found";sym_size=0;pass_by_ref=false;super_symbol="not_found"}
 let typedef_not_found={typename="not_found_404";  typespec="not_found"; type_size=0; sub_type=false }
 let fielddef_not_found={fieldname="not_found_404";  field_typespec="not_found"; belong_type="not_found";field_size=0;sub_field=false }
@@ -76,8 +76,9 @@ let init ()=
 let find_all_fields type_name = 
     List.filter (fun x -> x.belong_type = type_name) fielddef_table.fielddef_list 
 
+(* slot -1 indicate the symbol is an overview symbol *)
 let find_all_symbol proc_name = 
-    List.filter (fun x -> x.scope = proc_name) symbol_table.symbol_list 
+    List.filter (fun x -> x.scope = proc_name && x.slot != (-1)) symbol_table.symbol_list 
 
 
 (* `calculate the size it takes` functions for proc and typedef *)

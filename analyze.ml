@@ -1,7 +1,7 @@
 open Symbol_table
 open Bean_ast
 
-let proc_slot_count=ref 0;
+let proc_slot_count=ref 0
 
 let rec alyz_fielddef_list suptype flist =
     List.iter (alyz_fielddef suptype) flist
@@ -36,28 +36,33 @@ let alyz_typedef (typespec,ident)=
                     type_size=(find_typedef origin_type).type_size; 
                     sub_type=(origin_type != "int" && origin_type != "bool") }
 
-let rec alyz_subfieldlst supproc supsymbl ident typespec ref_flag flst=
-    (* add an overall then add sub and the slot number for overall is -1*)
-    Symbol_table.add_symbol{identifier=ident; slot=(-1); sym_typespec=typespec; 
-        scope=supproc; sym_size=(calc_size_type typespec);pass_by_ref=ref_flag;super_symbol=supsymbl};
-    List.iter (alyz_subfield supproc ident ref_flag) flst
-and alyz_subfield supproc supsymbl ref_flag field=
-    let fid=supsymbl^"."^field.fieldname in 
-    match field.field_typespec with
-        Bool-> Symbol_table.add_symbol {identifier=fid; slot=!proc_slot_count; sym_typespec="bool"; 
+let rec add_symbol_from_an_identifer_record supproc supsymbl ref_flag field=
+    if field.sub_field then 
+      let flst=Symbol_table.find_all_fields field.fieldname in
+        List.iter (add_symbol_from_an_identifer_record supproc field.fieldname ref_flag) flst
+    else
+      let fid=supsymbl^"."^field.fieldname in
+      Symbol_table.add_symbol {identifier=fid; slot = !proc_slot_count; sym_typespec=field.field_typespec; 
                 scope=supproc; sym_size=1;pass_by_ref=ref_flag;super_symbol=supsymbl};
               proc_slot_count := !proc_slot_count+1
-      | Int -> Symbol_table.add_symbol {identifier=fid; slot=!proc_slot_count; sym_typespec="int"; 
+
+let rec alyz_subfield supproc supsymbl ref_flag (id,typespec)=
+    let fid=(if supsymbl="" then id else supsymbl^"."^id) in 
+    match typespec with
+        Bool-> Symbol_table.add_symbol {identifier=fid; slot = !proc_slot_count; sym_typespec="bool"; 
                 scope=supproc; sym_size=1;pass_by_ref=ref_flag;super_symbol=supsymbl};
               proc_slot_count := !proc_slot_count+1
-      | Flist(flst)-> alyz_subfieldlst_record supproc supsymbl fid "record" ref_flag flst
+      | Int -> Symbol_table.add_symbol {identifier=fid; slot = !proc_slot_count; sym_typespec="int"; 
+                scope=supproc; sym_size=1;pass_by_ref=ref_flag;super_symbol=supsymbl};
+              proc_slot_count := !proc_slot_count+1
+      | Flist(flst)-> alyz_subfieldlst_record supproc supsymbl fid ref_flag flst
       | Id(id)-> let parameter_type=Symbol_table.find_typedef id in
                     if parameter_type.sub_type then
                       let flst=Symbol_table.find_all_fields id in
-                        alyz_subfieldlst supproc supsymbl fid parameter_type.typename ref_flag flst
+                        List.iter (add_symbol_from_an_identifer_record supproc supsymbl ref_flag) flst 
                     else
                       let origin_type=Symbol_table.look_up_origin_type id in
-                          Symbol_table.add_symbol{identifier=fid; slot=!proc_slot_count; sym_typespec=origin_type; 
+                          Symbol_table.add_symbol{identifier=fid; slot = !proc_slot_count; sym_typespec=origin_type; 
                             scope=supproc; sym_size=1; pass_by_ref=ref_flag;super_symbol=supsymbl;};
                           proc_slot_count := !proc_slot_count+1
 and alyz_subfieldlst_record supproc supsymbl ident ref_flag flst=
@@ -66,39 +71,18 @@ and alyz_subfieldlst_record supproc supsymbl ident ref_flag flst=
         scope=supproc; sym_size=(calc_size_record_by_super_symbol ident);pass_by_ref=ref_flag;super_symbol=supsymbl}
 
 
-let alyz_symbol_typespec supproc,ref_flag, typespec,ident=
-    match typespec with
-        Bool-> Symbol_table.add_symbol {identifier=ident; slot=!proc_slot_count; sym_typespec="bool"; 
-                            scope=supproc; sym_size=1; pass_by_ref=ref_flag;super_symbol=""};
-                          proc_slot_count := !proc_slot_count+1
-      | Int -> Symbol_table.add_symbol {identifier=ident; slot=!proc_slot_count; sym_typespec="int"; 
-                            scope=supproc; sym_size=1; pass_by_ref=ref_flag;super_symbol=""};
-                          proc_slot_count := !proc_slot_count+1
-      | Flist(flst)-> alyz_subfieldlst supproc "" ident "record" ref_flag flst
-      | Id(id)-> let parameter_type=Symbol_table.find_typedef id in
-                    if parameter_type.sub_type then
-                      (* add an overall then add sub and the slot number for overall is -1*)
-                      let flst=Symbol_table.find_all_fields id in
-                        alyz_subfieldlst supproc "" ident parameter_type.typename ref_flag flst
-                      (* ......add each field to symbol table *)
-                    else
-                      let origin_type=Symbol_table.look_up_origin_type id in
-                          Symbol_table.add_symbol{identifier=ident; slot=!proc_slot_count; sym_typespec=origin_type; 
-                            scope=supproc; sym_size=1; pass_by_ref=ref_flag;super_symbol="";};
-                          proc_slot_count := !proc_slot_count+1
-
 let alyz_parameter supproc (passspec,typespec,ident)=
     let ref_flag=(match passspec with Ref ->  true | Val ->  false) in
-    alyz_symbol_typespec supproc,ref_flag, typespec,ident
+      alyz_subfield supproc "" ref_flag (ident,typespec)
 
 let alyz_procheader procheader=
-    List.iter (alyz_parameter procheader.procname) procheader.parameters;
+    List.iter (alyz_parameter procheader.procname) procheader.parameters
 
 let alyz_vardecl supproc (typespec,ident)=
-    alyz_symbol_typespec supproc,false, typespec,ident
+    alyz_subfield supproc "" false (ident,typespec)
     
 let alyz_procbody procname procbody=
-    List.iter (alyz_vardecl procname) procbody.vardecls;
+    List.iter (alyz_vardecl procname) procbody.vardecls
         
 let alyz_proc (procheader, procbody) =
     let procname=procheader.procname in
