@@ -109,10 +109,13 @@ let show_table () =
     List.iter (fun x -> print_string (x.identifier^" "^(string_of_int x.slot)^" "^x.sym_typespec^" "^x.scope^" "^(string_of_int x.sym_size)^" "^x.super_symbol^" "^(b2s x.pass_by_ref)^"--\n")) Symbol_table.symbol_table.symbol_list;
     print_string "\n======proc table=======\n";
     List.iter (fun x -> print_string (x.proc_name^" "^(string_of_int x.proc_size)^"--\n")) Symbol_table.proc_table.proc_list;
-    let subsymblst=Symbol_table.get_leaf_symbol_by_super_symbol "z" in 
+    let subsymblst=Symbol_table.get_leaf_symbol_by_super_symbol "z" "q" in 
     print_string "\n======sub symbol table=======\n";
     List.iter (fun x -> print_string (x.identifier^" "^(string_of_int x.slot)^" "^x.sym_typespec^" "^x.scope^" "^(string_of_int x.sym_size)^" "^x.super_symbol^" "^(b2s x.pass_by_ref)^"--\n")) subsymblst;
     ()
+
+
+
 
 
 

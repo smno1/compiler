@@ -108,12 +108,12 @@ let look_up_origin_type type_name =
     done;
     !current_type
 
-let rec get_leaf_symbol_by_super_symbol supsymbl_name=
-    let symlst=List.filter (fun x -> x.super_symbol = supsymbl_name ) symbol_table.symbol_list in
+let rec get_leaf_symbol_by_super_symbol supsymbl_name scope=
+    let symlst=List.filter (fun x -> x.super_symbol = supsymbl_name && x.scope = scope) symbol_table.symbol_list in
     let leafsymblst=List.filter (fun x-> x.slot <> (-1) ) symlst in
     let supsymblst=List.filter (fun x-> x.slot = (-1) ) symlst in
     if ((List.length supsymblst)=0) then
         leafsymblst
     else
-        let subsymlst=List.flatten (List.map (fun x -> get_leaf_symbol_by_super_symbol x.identifier ) supsymblst) in
+        let subsymlst=List.flatten (List.map (fun x -> get_leaf_symbol_by_super_symbol x.identifier x.scope ) supsymblst) in
         leafsymblst@subsymlst
