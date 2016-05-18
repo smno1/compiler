@@ -1,8 +1,8 @@
 (* Define the types for each symbol table element *)
-type symbol={identifier:string; slot:string; typespec:string; scope:string; init:bool }
-type typedef={typename:string;  typespec:string; size:int }
-type fielddef={fieldname:string;  typespec:string; belong_type:string }
-type proc={procname:string;  typespec:string; size:int }
+type symbol = {identifier:string; slot:string; sym_typespec:string; scope:string; init:bool; sym_size:int }
+type typedef={typename:string;  typespec:string; type_size:int }
+type fielddef={fieldname:string;  field_typespec:string; belong_type:string; field_size:int }
+type proc={procname:string;  proc_typespec:string; proc_size:int }
 
 
 (* Define the 4 types of symbol tables *)
@@ -13,33 +13,17 @@ type proc_stack={mutable proc_list : proc list}
 
 
 (* default elements *)
-let symbol_not_found={identifier="not_found_404";slot="not_found";typespec="not_found"; scope="not_found";init=false}
-let typedef_not_found={typename="not_found_404";  typespec="not_found"; size=0 }
-let fielddef_not_found={fieldname="not_found_404";  typespec="not_found"; belong_type="not_found" }
-let proc_not_found={procname="not_found_404";  typespec="not_found"; size=0 }
+let symbol_not_found={identifier="not_found_404";slot="not_found";sym_typespec="not_found"; 
+        scope="not_found";init=false;sym_size=0}
+let typedef_not_found={typename="not_found_404";  typespec="not_found"; type_size=0 }
+let fielddef_not_found={fieldname="not_found_404";  field_typespec="not_found"; belong_type="not_found";field_size=0 }
+let proc_not_found={procname="not_found_404";  proc_typespec="not_found"; proc_size=0 }
 
 
 let symbol_table= {symbol_list=[]}
 let typedef_table= {typedef_list=[]}
 let fielddef_table= {fielddef_list=[]}
 let proc_table= {proc_list=[]}
-
-
-(* init function *)
-let init symbol_list typedef_list fielddef_list proc_list=
-    symbol_table.symbol_list <- symbol_list
-    typedef_table.typedef_list <- typedef_list
-    fielddef_table.fielddef_list <- fielddef_list
-    proc_table.proc_list <- proc_list
-
-
-(* init primitive types *)
-let init_d typedef_list = 
-	let int_instance = { typename="int"; typespec="int"; size=1 } in 
-	let bool_instance = { typename="bool"; typespec="bool"; size=1 } in
-	add_typedef int_instance
-	add_typedef bool_instance
-
 
 (* all the `find element` functions *)
 let find_symbol id scope =
@@ -72,26 +56,39 @@ let add_proc x =
     if not (List.exists (fun s->s.procname=x.procname) proc_table.proc_list) then
         proc_table.proc_list <- x::proc_table.proc_list
 
+(* init primitive types *)
+let init_d () = 
+    let int_instance = { typename="int"; typespec="int"; type_size=1 } in 
+    let bool_instance = { typename="bool"; typespec="bool"; type_size=1 } in
+    add_typedef int_instance;
+    add_typedef bool_instance
+
+(* init function *)
+let init ()=
+    symbol_table.symbol_list <- [];
+    typedef_table.typedef_list <- [];
+    fielddef_table.fielddef_list <- [];
+    proc_table.proc_list <- [];
+    init_d()
+
 
 (* `look for all element in certain scope` functions for proc -> symbol and type -> field *)
 let find_all_fields type_name = 
-	let result = List.filter (fun x -> x.belong_type = type_name) fielddef_table.fielddef_list in
-	result
+    List.filter (fun x -> x.belong_type = type_name) fielddef_table.fielddef_list 
 
 let find_all_symbol proc_name = 
-	let result = List.filter (fun x -> x.scope = proc_name) proc_table.proc_list in
-	result
+    List.filter (fun x -> x.scope = proc_name) symbol_table.symbol_list 
 
 
 (* `calculate the size it takes` functions for proc and typedef *)
 let calc_size_type type_name = 
-	let all_elements = find_all_fields type_name in
-	let total_size = 0 in
-	List.iter (fun x -> total_size + x.size) all_elements
-	total_size
+    let all_elements = find_all_fields type_name in
+    let total_size = ref 0 in
+    List.iter (fun x -> total_size := !total_size + x.field_size) all_elements;
+    !total_size
 
-let calc_size_proc proc_instance = 
-	let all_elements = find_all_symbol proc_name in
-	let total_size = 0 in
-	List.iter (fun x -> total_size + (calc_size_type x.typespec)) all_elements
-	total_size
+let calc_size_proc proc_name = 
+    let all_elements = find_all_symbol proc_name in
+    let total_size = ref 0 in
+    List.iter (fun x -> total_size := !total_size + (calc_size_type x.sym_typespec)) all_elements;
+    !total_size

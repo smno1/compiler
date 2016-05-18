@@ -1,3 +1,5 @@
+exception Duplicated_Name of string;;
+
 (* Define the types for each symbol table element *)
 type symbol={identifier:string; slot:string; sym_typespec:string; scope:string; init:bool; sym_size:int }
 type typedef={typename:string;  typespec:string; type_size:int; sub_type:bool}
@@ -45,7 +47,9 @@ let add_symbol x =
         symbol_table.symbol_list <- x::symbol_table.symbol_list
 
 let add_typedef x =
-    if not (List.exists (fun s->s.typename=x.typename) typedef_table.typedef_list) then
+    (* First check if there is duplicated names in symbol table *)
+    if (not (List.exists (fun s->s.typename=x.typename) typedef_table.typedef_list)) 
+        && (not (List.exists (fun s -> s.identifier = x.typename) symbol_table.symbol_list)) then
         typedef_table.typedef_list <- x::typedef_table.typedef_list
 
 let add_fielddef x =
@@ -58,8 +62,8 @@ let add_proc x =
 
 (* init primitive types *)
 let init_d () = 
-    let int_instance = { typename="int"; typespec="int"; type_size=1 } in 
-    let bool_instance = { typename="bool"; typespec="bool"; type_size=1 } in
+    let int_instance = { typename="int"; typespec="int"; type_size=1; sub_type=false } in 
+    let bool_instance = { typename="bool"; typespec="bool"; type_size=1; sub_type=false } in
     add_typedef int_instance;
     add_typedef bool_instance
 
@@ -92,6 +96,7 @@ let calc_size_proc proc_name =
     let total_size = ref 0 in
     List.iter (fun x -> total_size := !total_size + (calc_size_type x.sym_typespec)) all_elements;
     !total_size
+
 (* for id type checking *)
 let look_up_origin_type type_name =
     let current_type=ref type_name in
@@ -99,5 +104,3 @@ let look_up_origin_type type_name =
         current_type := (find_typedef !current_type).typespec
     done;
     !current_type
-
-

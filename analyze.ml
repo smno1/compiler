@@ -1,5 +1,7 @@
 open Symbol_table
 
+
+(* To be moved to symbol.ml *)
 let alyz_fielddef suptype (iden,fieldtype)=
   match fieldtype with
         Bool-> Symbol_table.add_fielddef {fieldname=iden;  field_typespec="bool"; belong_type=suptype; 
@@ -36,3 +38,7 @@ let alyz_program program =
     Symbol_table.init();
     List.map alyz_typedef program.typedefs
     (* List.map cg_proc program.procs; *)
+
+
+
+(* This file contains all the well-formedness checkers *)
