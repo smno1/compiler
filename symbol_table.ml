@@ -117,3 +117,20 @@ let rec get_leaf_symbol_by_super_symbol supsymbl_name scope=
     else
         let subsymlst=List.flatten (List.map (fun x -> get_leaf_symbol_by_super_symbol x.identifier x.scope ) supsymblst) in
         leafsymblst@subsymlst
+
+let b2s b=
+  if b then "true" else "false"
+
+let print_symbol_list slst=
+    List.iter (fun x -> print_string (x.identifier^" "^(string_of_int x.slot)^" "^x.sym_typespec^" "^x.scope^" "^(string_of_int x.sym_size)^" "^x.super_symbol^" "^(b2s x.pass_by_ref)^"--\n")) slst
+
+let print_type_list tlst=
+    List.iter (fun x -> print_string (x.typename^" "^x.typespec^" "^(string_of_int x.type_size)^" "^(b2s x.sub_type)^"--\n")) tlst
+
+let print_field_list flst=
+    List.iter (fun x -> print_string (x.fieldname^" "^x.field_typespec^" "^x.belong_type^" "^(string_of_int x.field_size)^" "^(b2s x.sub_field)^"--\n")) flst
+
+let print_proc_list plst=
+    List.iter (fun x -> print_string (x.proc_name^" "^(string_of_int x.proc_size)^"--\n")) plst
+
+    
