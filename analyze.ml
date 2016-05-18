@@ -47,6 +47,7 @@ let rec add_symbol_from_an_identifer_record supproc supsymbl ref_flag field=
               proc_slot_count := !proc_slot_count+1
 
 let rec alyz_subfield supproc supsymbl ref_flag (id,typespec)=
+    (* when it is a ref create all slot for its subtype all just create one for overall *)
     let fid=(if supsymbl="" then id else supsymbl^"."^id) in 
     match typespec with
         Bool-> Symbol_table.add_symbol {identifier=fid; slot = !proc_slot_count; sym_typespec="bool"; 
@@ -96,16 +97,18 @@ let alyz_program program =
     List.iter alyz_typedef program.typedefs;
     List.iter alyz_proc program.procs
 
+let b2s b=
+  if b then "true" else "false"
+
 let show_table () =
     print_string "======type table=======\n";
-    List.iter (fun x -> print_string (x.typename^" ")) Symbol_table.typedef_table.typedef_list;
+    List.iter (fun x -> print_string (x.typename^" "^x.typespec^" "^(string_of_int x.type_size)^" "^(b2s x.sub_type)^"--\n")) Symbol_table.typedef_table.typedef_list;
     print_string "\n======fielsd table=======\n";
-    List.iter (fun x -> print_string (x.fieldname^" ")) Symbol_table.fielddef_table.fielddef_list;
+    List.iter (fun x -> print_string (x.fieldname^" "^x.field_typespec^" "^x.belong_type^" "^(string_of_int x.field_size)^" "^(b2s x.sub_field)^"--\n")) Symbol_table.fielddef_table.fielddef_list;
     print_string "\n======symbol table=======\n";
-    (* type symbol={identifier:string; slot:int; sym_typespec:string; scope:string; sym_size:int; pass_by_ref:bool; super_symbol:string } *)
-    List.iter (fun x -> print_string (x.identifier^" "^(string_of_int x.slot)^" "^x.sym_typespec^" "^x.scope^" "^(string_of_int x.sym_size)^" "^x.super_symbol^"--\n")) Symbol_table.symbol_table.symbol_list;
+    List.iter (fun x -> print_string (x.identifier^" "^(string_of_int x.slot)^" "^x.sym_typespec^" "^x.scope^" "^(string_of_int x.sym_size)^" "^x.super_symbol^" "^(b2s x.pass_by_ref)^"--\n")) Symbol_table.symbol_table.symbol_list;
     print_string "\n======proc table=======\n";
-    List.iter (fun x -> print_string (x.proc_name^" ")) Symbol_table.proc_table.proc_list;
+    List.iter (fun x -> print_string (x.proc_name^" "^(string_of_int x.proc_size)^"--\n")) Symbol_table.proc_table.proc_list;
     ()
 
 

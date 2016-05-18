@@ -78,7 +78,7 @@ let find_all_fields type_name =
 
 (* slot -1 indicate the symbol is an overview symbol *)
 let find_all_symbol proc_name = 
-    List.filter (fun x -> x.scope = proc_name && x.slot != (-1)) symbol_table.symbol_list 
+    List.filter (fun x -> x.scope = proc_name && x.slot <> (-1)) symbol_table.symbol_list 
 
 
 (* `calculate the size it takes` functions for proc and typedef *)
@@ -91,7 +91,7 @@ let calc_size_type type_name =
 let calc_size_proc proc_name = 
     let all_elements = find_all_symbol proc_name in
     let total_size = ref 0 in
-    List.iter (fun x -> total_size := !total_size + (calc_size_type x.sym_typespec)) all_elements;
+    List.iter (fun x -> total_size := !total_size + (find_typedef x.sym_typespec).type_size) all_elements;
     !total_size
 
 let calc_size_record_by_super_symbol symbol_name=
@@ -103,7 +103,7 @@ let calc_size_record_by_super_symbol symbol_name=
 (* for id type checking *)
 let look_up_origin_type type_name =
     let current_type=ref type_name in
-    while (List.exists (fun s-> s.typename = !current_type && s.typename != s.typespec) typedef_table.typedef_list) do
+    while (List.exists (fun s-> s.typename = !current_type && s.typename <> s.typespec) typedef_table.typedef_list) do
         current_type := (find_typedef !current_type).typespec
     done;
     !current_type
