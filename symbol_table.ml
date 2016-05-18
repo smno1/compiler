@@ -42,19 +42,19 @@ let find_proc id =
 (* all the `add element` functions *)
 let add_symbol x =
     if not (List.exists (fun s->s.identifier=x.identifier && s.scope=x.scope) symbol_table.symbol_list) then
-        symbol_table.symbol_list <- x::symbol_table.symbol_list
+        symbol_table.symbol_list <- symbol_table.symbol_list@[x]
 
 let add_typedef x =
     if not (List.exists (fun s->s.typename=x.typename) typedef_table.typedef_list) then
-        typedef_table.typedef_list <- x::typedef_table.typedef_list
+        typedef_table.typedef_list <- typedef_table.typedef_list@[x]
 
 let add_fielddef x =
     if not (List.exists (fun s->s.fieldname=x.fieldname && s.belong_type=x.belong_type) fielddef_table.fielddef_list) then
-        fielddef_table.fielddef_list <- x::fielddef_table.fielddef_list
+        fielddef_table.fielddef_list <- fielddef_table.fielddef_list@[x]
 
 let add_proc x =
     if not (List.exists (fun s->s.proc_name=x.proc_name) proc_table.proc_list) then
-        proc_table.proc_list <- x::proc_table.proc_list
+        proc_table.proc_list <- proc_table.proc_list@[x]
 
 (* init primitive types *)
 let init_d () = 
