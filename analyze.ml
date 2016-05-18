@@ -37,11 +37,11 @@ let alyz_typedef (typespec,ident)=
                     sub_type=(origin_type != "int" && origin_type != "bool") }
 
 let rec add_symbol_from_an_identifer_record supproc supsymbl ref_flag field=
+    let fid=supsymbl^"."^field.fieldname in
     if field.sub_field then 
       let flst=Symbol_table.find_all_fields field.fieldname in
-        List.iter (add_symbol_from_an_identifer_record supproc field.fieldname ref_flag) flst
+        List.iter (add_symbol_from_an_identifer_record supproc fid ref_flag) flst
     else
-      let fid=supsymbl^"."^field.fieldname in
       Symbol_table.add_symbol {identifier=fid; slot = !proc_slot_count; sym_typespec=field.field_typespec; 
                 scope=supproc; sym_size=1;pass_by_ref=ref_flag;super_symbol=supsymbl};
               proc_slot_count := !proc_slot_count+1
@@ -59,7 +59,7 @@ let rec alyz_subfield supproc supsymbl ref_flag (id,typespec)=
       | Id(id)-> let parameter_type=Symbol_table.find_typedef id in
                     if parameter_type.sub_type then
                       let flst=Symbol_table.find_all_fields id in
-                        List.iter (add_symbol_from_an_identifer_record supproc supsymbl ref_flag) flst 
+                        List.iter (add_symbol_from_an_identifer_record supproc fid ref_flag) flst 
                     else
                       let origin_type=Symbol_table.look_up_origin_type id in
                           Symbol_table.add_symbol{identifier=fid; slot = !proc_slot_count; sym_typespec=origin_type; 
@@ -89,7 +89,7 @@ let alyz_proc (procheader, procbody) =
     proc_slot_count := 0;
     alyz_procheader procheader;
     alyz_procbody procname procbody;
-    Symbol_table.add_proc {procname=procname; proc_size=(Symbol_table.calc_size_proc procname)}
+    Symbol_table.add_proc {proc_name=procname; proc_size=(Symbol_table.calc_size_proc procname)}
 
 let alyz_program program = 
     Symbol_table.init();
@@ -101,6 +101,11 @@ let show_table () =
     List.iter (fun x -> print_string (x.typename^" ")) Symbol_table.typedef_table.typedef_list;
     print_string "\n======fielsd table=======\n";
     List.iter (fun x -> print_string (x.fieldname^" ")) Symbol_table.fielddef_table.fielddef_list;
+    print_string "\n======symbol table=======\n";
+    (* type symbol={identifier:string; slot:int; sym_typespec:string; scope:string; sym_size:int; pass_by_ref:bool; super_symbol:string } *)
+    List.iter (fun x -> print_string (x.identifier^" "^(string_of_int x.slot)^" "^x.sym_typespec^" "^x.scope^" "^(string_of_int x.sym_size)^" "^x.super_symbol^"--\n")) Symbol_table.symbol_table.symbol_list;
+    print_string "\n======proc table=======\n";
+    List.iter (fun x -> print_string (x.proc_name^" ")) Symbol_table.proc_table.proc_list;
     ()
 
 

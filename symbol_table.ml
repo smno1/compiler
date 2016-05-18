@@ -2,7 +2,7 @@
 type symbol={identifier:string; slot:int; sym_typespec:string; scope:string; sym_size:int; pass_by_ref:bool; super_symbol:string }
 type typedef={typename:string;  typespec:string; type_size:int; sub_type:bool}
 type fielddef={fieldname:string;  field_typespec:string; belong_type:string; field_size:int; sub_field:bool }
-type proc={procname:string; proc_size:int }
+type proc={proc_name:string; proc_size:int }
 
 
 (* Define the 4 types of symbol tables *)
@@ -17,7 +17,7 @@ let symbol_not_found={identifier="not_found_404";slot=0;sym_typespec="not_found"
         scope="not_found";sym_size=0;pass_by_ref=false;super_symbol="not_found"}
 let typedef_not_found={typename="not_found_404";  typespec="not_found"; type_size=0; sub_type=false }
 let fielddef_not_found={fieldname="not_found_404";  field_typespec="not_found"; belong_type="not_found";field_size=0;sub_field=false }
-let proc_not_found={procname="not_found_404"; proc_size=0 }
+let proc_not_found={proc_name="not_found_404"; proc_size=0 }
 
 
 let symbol_table= {symbol_list=[]}
@@ -36,7 +36,7 @@ let find_fielddef id belong_type=
     try (List.find (fun s->s.fieldname=id && s.belong_type=belong_type) fielddef_table.fielddef_list) with Not_found -> fielddef_not_found
 
 let find_proc id =
-    try (List.find (fun s->s.procname=id) proc_table.proc_list) with Not_found -> proc_not_found
+    try (List.find (fun s->s.proc_name=id) proc_table.proc_list) with Not_found -> proc_not_found
 
 
 (* all the `add element` functions *)
@@ -53,7 +53,7 @@ let add_fielddef x =
         fielddef_table.fielddef_list <- x::fielddef_table.fielddef_list
 
 let add_proc x =
-    if not (List.exists (fun s->s.procname=x.procname) proc_table.proc_list) then
+    if not (List.exists (fun s->s.proc_name=x.proc_name) proc_table.proc_list) then
         proc_table.proc_list <- x::proc_table.proc_list
 
 (* init primitive types *)
