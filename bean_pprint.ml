@@ -166,7 +166,7 @@ let pp_read fmt lvalue=
     fprintf fmt ";"
 
 let pp_write fmt expr=
-    fprintf € "write ";
+    fprintf fmt "write ";
     pp_expr fmt true expr;
     fprintf fmt ";"
 

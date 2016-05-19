@@ -2,7 +2,11 @@
 open Symbol_table
 open Bean_ast
 
-(* Needs correction here *)
+
+(* ================================================ *)
+(* =====      Utility Functions         =========== *)
+(* ================================================ *)
+
 let rec convert_to_primitive type_instance = []
 (* 	let fieldsList = find_all_fields type_instance.typename in
 	let primitiveList = [] in
@@ -27,32 +31,6 @@ let rec sort = function
     | x :: l -> if elem.slot < x.slot then elem :: x :: l
                 else x :: insert elem l;;
 
-(* Types utilities *)
-type t = 
-	| Int of int
-	| Bool of bool
-	| String of string
-	| Record of symbol list
-	;;
-
-let rec to_string = function
-  | Int -> "int"
-  | Bool -> "bool"
-  | String -> "string";;
-
-let rec real_type = function
-	| Int -> Int
-	| Bool -> Bool
-	| 
-
-let rec check expected actual =
-	match (expected, actual) with =
-	| (Int, Int) 					-> true
-	| (Bool, Bool) 				-> true
-	| (String, String)    -> true
-  | _										-> false
-
-
 (* Ensures that a type congruent to an expected type *)
 let compare_type type1 type2 = 
 	if type1.typename = type2.typename then 
@@ -72,29 +50,7 @@ let compare_type type1 type2 =
 		)
 	)
 
-(* check call: check if calling the proc is with proper name / params *)
-let check_call call_name call_param =
-	if not(List.exists(fun x -> x.identifier = call_name) symbol_table.symbol_list)
-	then failwith "Error: The proc called is not defined.\n"
-	let param_list = find_all_param call_name in
-	let match_num = ref 0 in
-	begin
-		param_list <- sort param_list;
-		for i = 0 to (List.length param_list - 1) do
-			if (List.nth param_list i).sym_typespec = List.nth call_param i 
-		done
-	end
-
-(* check write/read: read int/bool, write expression/string *)
-let check_read read_object =
-	if not(to_string read_object.t = "bool" or to_string read_object.t = "int") 
-	then failwith "Error: Can only read "
-
-let check_write wexpr =
-
-
-
-(* check if expressions are valid *)
+(* check each expression, matching with vasries expression types *)
 let check_expr expr = 
 	match expr with
 		| Ebool(b) -> 
@@ -103,28 +59,101 @@ let check_expr expr =
 		| Ebinop(binop) -> check_binop
 		| Eunop(unop) -> check_unop
 
-let check_stmt stmt =
+
+(* check each statement, matching with varies statement types *)
+let check_stmt supproc stmt =
 	match stmt with
-		|	Assign(ass) -> check_assign
-		| Read(rlv) -> check_read
-		| Write(wexpr) -> check_write
-		| WriteS(ws) -> check_writeS
-		| Call(c) -> check_call
-		| IfThen(ifth) -> check_ifthen
-		| IfThenElse(ifth) -> check_ifThenElse
-		| While(w) -> check_while
+		| Assign(ass) -> check_assign supproc ass
+		| Read(rlv) -> check_read supproc rlv
+		| Write(wexpr) -> check_write supproc wexpr
+		| WriteS(ws) -> () (* skip checking string *)
+		| Call(c) -> check_call supproc c
+		| IfThen(ifth) -> check_ifthen ifth
+		| IfThenElse(ifte) -> check_ifThenElse ifte
+		| While(w) -> check_while w
+
+(* check assignment: check lvalue's type match rvalue's type *)
+and check_assign supproc (lvalue, rvalue) =
+	let lvalue_symbol = find_symbol lvalue supproc in
+	let rvalue_symbol = get_expression_type rvalue supproc in (* TODO: get_expression_type *)
+  	let lvalue_origin_type = get_leaf_symbol_by_super_symbol lvalue_symbol.sym_typespec supproc in (* TODO: get structured real type list *)
+  	let rvalue_origin_type = get_leaf_symbol_by_super_symbol rvalue_symbol.sym_typespec supporc in
+  	if not(compare_list lvalue_origin_type rvalue_origin_type) then 
+  		failwith "Error: LHS and RHS of assignment should be of same type."
+
+(* check read statement: check the lvalue is bool/int or alias of these *)
+and check_read supproc lvalue =
+	let lvalue_symbol = find_symbol lvalue supproc in
+	let lvalue_type = find_typedef lvalue_symbol.sym_typespec in
+	if lvalue_type.sub_field = true then
+		failwith "Error: Can only read bool or int values."
+
+(* check write statement: check symbols in expr --> call check_expr *)
+and check_write supproc expr =
+	check_expr supproc expr
+
+(* check call statement: 
+ * 		check if the proc name exists
+ *		check if the params are in scope
+ * 		check if the params type and sequence *)
+and check_call supporc (id, exprlst) =
+	let proc_name = find_proc id in
+	let param_list = find_all_param call_name in
+	let match_num = ref 0 in
+	begin (* TODO: check record types *)
+		param_list <- sort param_list;
+		for i = 0 to (List.length param_list - 1) do
+			if (List.nth param_list i).sym_typespec = List.nth call_param i 
+		done
+	end
+
+(* check `if then` statement:
+ * 		check if `if` expr is bool
+ *		check `then` block --> recursive call check_stmt *)
+and check_ifthen supproc (expr, stmtlst) = 
+	let expr_type = get_expression_type expr supproc in
+	begin
+		if not(expr_type = "bool") then
+			failwith "Error: if statement can only take bool type."
+		List.iter (fun x -> check_stmt supproc x) stmtlst
+	end
+
+(* check `if then else` statement:
+ * 		check if `if` expr is bool
+ * 		check `then` block --> recursive call check_stmt
+ * 		check `else` block --> recursive call check_stmt *)
+and check_ifthenelse supproc (expr, then_stmtlst, else_stmtlst) = 
+	let expr_type = get_expression_type expr supproc in
+	begin
+		if not(expr_type = "bool") then
+			failwith "Error: if statement can only take bool type."
+		List.iter (fun x -> check_stmt supproc x) then_stmtlst
+		List.iter (fun x -> check_stmt supproc x) else_stmtlst
+	end
+
+(* check `while` statement:
+ * 		check `while` expr is bool
+ * 		check `do` block --> recursive call check_stmt *)
+and check_while supproc (expr, stmtlst) = 
+	let expr_type = get_expression_type expr supproc in
+	begin
+		if not(expr_type = "bool") then
+			failwith "Error: while statement can only take bool type."
+		List.iter (fun x -> check_stmt supproc x) stmtlst
+	end
 
 
+(* Check the procbody, iter through all statements *)
 let check_procbody procname procbody =
 	List.iter (check_stmt procname) procbody.stmts
 
-
+(* Check procs *)
 let check_proc (procheader, procbody) = 
 	let procname = procheader.procname in
 	check_procheader procheader;
 	check_procbody procname procbody
 
-
+(* Entry point: given the program go check all its children *)
 let check_program program =
-	List.iter check_typedef program.typedefs;
+	(* List.iter check_typedef program.typedefs; skip the typedef for now *)
 	List.iter check_proc program.procs

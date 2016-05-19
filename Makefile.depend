@@ -3,6 +3,8 @@ bean.cmx :
 bean_ast.cmi :
 bean_parse.cmi : bean_ast.cmi
 bean_pprint.cmi :
+analyze.cmi : symbol_table.cmi
+symbol_table.cmi :
 bean_ast.cmo : bean_ast.cmi
 bean_ast.cmx : bean_ast.cmi
 bean_lex.cmo : bean_parse.cmi
@@ -10,6 +12,10 @@ bean_lex.cmx : bean_parse.cmx
 bean_parse.cmo : bean_ast.cmi bean_parse.cmi
 bean_parse.cmx : bean_ast.cmx bean_parse.cmi
 bean_pprint.cmo : bean_pprint.cmi
+analyze.cmo : analyze.cmi symbol_table.cmi
+symbol_table.cmo : symbol_table.cmi
 bean_pprint.cmx : bean_pprint.cmi
+analyze.cmx : analyze.cmi symbol_table.cmi
+symbol_table.cmx : symbol_table.cmi
 bean.cmo :
 bean.cmx :
