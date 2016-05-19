@@ -7,6 +7,7 @@
 module P = Bean_parse
 module F = Format
 module PP = Bean_pprint
+module A= Analyze
 
 (* Argument parsing code *)
 let infile_name = ref None
@@ -43,7 +44,8 @@ let main () =
       | PrettyPrint ->
         PP.print_program F.std_formatter prog 
       | Compile -> 
-        prerr_string "Sorry, cannot generate code yet.\n"
+        A.alyz_program prog;
+        A.show_table()
     with exn -> ()
 
 let _ = main ()
