@@ -4,10 +4,12 @@
 (* Also to mention, this version works for ocaml *)
 (* 3.11.2                                        *)
 (* --------------------------------------------- *)
+open Printexc
 module P = Bean_parse
 module F = Format
 module PP = Bean_pprint
 module A= Analyze
+module TC = Type_checking
 
 (* Argument parsing code *)
 let infile_name = ref None
@@ -44,8 +46,13 @@ let main () =
       | PrettyPrint ->
         PP.print_program F.std_formatter prog 
       | Compile -> 
-        A.alyz_program prog;
-        A.show_table()
+          begin
+            A.alyz_program prog;
+            A.show_table();
+            try
+              TC.check_program prog
+            with exn -> print_string (Printexc.to_string exn)
+          end
     with exn -> ()
 
 let _ = main ()
