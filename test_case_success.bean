@@ -1,6 +1,5 @@
 typedef {
-	f : int, ff : 
-{ g : bool, g : bool }
+	f : int, ff : { g : bool, gg : bool }
 } a_record
 typedef {
 	used : bool,
@@ -13,8 +12,7 @@ proc q (val 	bool x
 int n; bool y;
 a_record z;
 z.f := 42;
-z.f := { g = true,
-g = false };
+z.ff := { g = true, gg = false };
 end
 
 proc p (ref int i)
@@ -25,10 +23,11 @@ int m;
 int n;
 a_record a;
 
-	read x;
-	a.f.ff := n + 2;
+	read n;
+	a.f := n + 2;
+	m := n;
+
 	while n>1 do
-		m := n;
 		while m>0 do
 			if m>0 then
 				n := -(n - 1);

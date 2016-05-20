@@ -15,13 +15,14 @@ let check_symbol symbol scope =
 		failwith "Error: this symbol is not defined."
 
 let check_symbol_id symbol_name scope = 
-	print_string "Checking id ... ";
-	Printf.printf "%s" symbol_name;
-	print_string "\n";
+	(* print_string "Checking id ... "; *)
+	(* Printf.printf "%s" symbol_name; *)
+	(* print_string "\n"; *)
 	if not (List.exists (fun x -> x.identifier = symbol_name && x.scope = scope) Symbol.symbol_table.symbol_list) then
 		failwith "Error: this symbol is not defined."
 	else
-		print_string "Success !!\n";;
+		()
+		(* print_string "Success !!\n" *);;
 
 let check_field field_name type_name =
 	if not (List.exists (fun x -> x.fieldname = field_name && x.belong_type = type_name) Symbol.fielddef_table.fielddef_list) then
@@ -97,6 +98,7 @@ let binop_op_type = function
     | Op_gte-> "bi"
     | Op_and-> "bb" (* bool type only with bool operands *)
     | Op_or-> "bb"
+    | Op_add | Op_sub | Op_mul | Op_div -> "int"
 
 let unop_type = function
 	| Op_minus-> "int"
@@ -119,9 +121,9 @@ let rec match_lvalue supproc lvalue =
 	let id_list = [] in
 	match lvalue with
 		| LId(id) -> match_symbol supproc id
-		| LField(lfield) -> (Printf.printf "%s" (String.concat "." (
+		| LField(lfield) -> ((* Printf.printf "%s" (String.concat "." (
 							get_id_lfield supproc lfield id_list));
-							print_string "\n";
+							print_string "\n"; *)
 							match_symbol supproc (String.concat "." (
 							get_id_lfield supproc lfield id_list)))
 		
@@ -132,6 +134,13 @@ and get_id_lvalue supproc lvalue idlst =
 and get_id_lfield supproc (lvalue, id) idlst = 
 	let newlst = get_id_lvalue supproc lvalue idlst in
 	newlst@[id]
+
+(* return the lvalue id *)
+and get_name_lvalue supproc lvalue =
+	match lvalue with
+		| LId(id) -> [id]
+		| LField(lfield) -> get_id_lfield supproc lfield []
+
 
 (* calculate the type of an expression *)
 let rec match_expr supproc expr =
@@ -172,6 +181,7 @@ and match_unop supproc (unop, expr) =
 			failwith "Error: Operator/operands types mismatch."
 	)
 
+
 (* ================================================ *)
 (* ========     Check Functions         =========== *)
 (* ================================================ *)
@@ -181,11 +191,6 @@ let rec check_lvalue supproc lvalue =
 	match lvalue with
 		| LId(id) -> check_symbol_id id supproc
 		| LField(lfield) -> ()
-
-(* check struct initialization:
- * 		check if the field name matches the field name defined *)
-let rec check_struct supproc type_name fieldinitlst =
-	List.iter (fun x -> check_field x.fieldname type_name) fieldinitlst
 
 (* check each expression, matching with vasries expression types *)
 let rec check_expr supproc expr =
@@ -199,10 +204,33 @@ let rec check_expr supproc expr =
 (* check rvalue
  *		if rvalue is an expression --> call check_expr
  * 		if rvalue is an struct --> call check_struct *)
-(* let rec check_rvalue supproc type_name rvalue =
+let rec check_rvalue supproc type_name left_id_list rvalue =
+	print_string "Checking rvalue .................... ";
 	match rvalue with
-		| Rexpr(expr) -> check_expr supproc expr
-		| Rstruct(rs) -> check_struct supproc type_name rs *)
+		| Rexpr(expr) -> (let right_type = match_expr supproc expr in 
+						 (Printf.printf "%s" right_type; 
+						  print_string "\n";
+						  if type_name <> right_type then 
+						  	failwith "Error: Assignment type mismatch."))
+		| Rstruct(rs) -> (print_string "Entering struct ..."; 
+						  if type_name <> "record" then 
+						  	failwith "Error: Assignment type mismatch, record != simple type."
+						  else (
+						  	check_struct supproc left_id_list rs;
+						  	()))(* check_struct supproc type_name rs *)
+(* check struct initialization:
+ * 		check if the field name matches the field name defined *)
+and check_struct supproc left_id_list fieldlst =
+	(* check field duplication *)
+ 	List.map (check_fieldinit supproc left_id_list) fieldlst
+(* check if the lvalue names in the init is in the typedef *)
+and check_fieldinit supproc left_id_list (id, rvalue) = 
+	print_string " ---------------------\n";
+	let full_id_list = left_id_list@[id] in
+	let full_id = String.concat "." full_id_list in
+	let left_type = (find_symbol full_id supproc).sym_typespec in
+	check_rvalue supproc left_type full_id_list rvalue
+
 
 (* check each statement, matching with varies statement types *)
 let rec check_stmt supproc stmt =
@@ -218,7 +246,14 @@ let rec check_stmt supproc stmt =
 
 (* check assignment: check lvalue's type match rvalue's type *)
 and check_assign supproc (lvalue, rvalue) = (* TODO: match rvalue with expr/struct *)
-	match_lvalue supproc lvalue;
+	print_string "============================================>";
+	Printf.printf "%s" supproc;
+	(* print_string "\n"; *)
+	let left_type = match_lvalue supproc lvalue in
+	let left_id_list = get_name_lvalue supproc lvalue in
+	Printf.printf " xxx  %s" left_type;
+	print_string "\n";
+	check_rvalue supproc left_type left_id_list rvalue;
 	()
 	(* let lvalue_type = match_lvalue supproc lvalue in
 	check_rvalue supproc lvalue_type rvalue;

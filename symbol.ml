@@ -51,6 +51,11 @@ let proc_table= {proc_list=[]}
 let find_symbol id scope =
     try (List.find (fun s->s.identifier=id && s.scope=scope) symbol_table.symbol_list) with Not_found -> symbol_not_found
 
+let find_symbol_instance symbol scope =
+    let id = symbol.identifier in
+    let scope_name = scope.proc_name in
+    try (List.find (fun s->s.identifier=id && s.scope=scope_name) symbol_table.symbol_list) with Not_found -> symbol_not_found
+
 let find_typedef id =
     try (List.find (fun s->s.typename=id) typedef_table.typedef_list) with Not_found -> typedef_not_found
 
