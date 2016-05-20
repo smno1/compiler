@@ -84,17 +84,23 @@ let cg_lvalue fmt lvalue scope =
 
 
 let assign_atom fmt latom ridlist lbase rbase = 
+    Symbol.print_symbol_list ridlist;
     let llen = String.length latom.identifier in
     let ratom = List.filter
         (fun x -> let rlen = String.length x.identifier in
             let left = String.sub latom.identifier lbase (llen-lbase) in
             let right = String.sub x.identifier rbase (rlen-rbase) in
-            let res = (left = right) in
+            let res = (left == right) in
+            print_string left;
+            print_string "\n";
+            print_string right;
+            print_string "\n";
             res;
-            ) ridlist in
+        ) ridlist in
 
-    fprintf fmt "load r0, %d\n" (List.hd ratom).slot;
-    fprintf fmt "store %d, r0\n" latom.slot
+    Symbol.print_symbol_list ratom
+    fprintf fmt "load r0, %d" (List.hd ratom).slot;
+    fprintf fmt "store %d, r0" latom.slot
 
 
 let assign_type fmt lid rid scope = 

@@ -3,13 +3,23 @@ typedef{
 	b: int
 } type_x
 
+
+typedef{
+	b: type_x,
+	d: int
+	}type_y
+
+
 proc main()
 
 int a;
-type_x x;
-{c: int} y;
+type_y x;
+type_x y;
+{c: int} z;
 bool b;
 
-x.a := a + y.c;
+
+x := {b = {a = a}};
+
 
 end
