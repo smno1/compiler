@@ -1,0 +1,32 @@
+proc main()
+int x;
+int y;
+int a;
+int b;
+int c;
+
+read x;
+
+x := x+1;
+y := (a+b)*c - (a+b*c);
+
+if x < y then
+x := y;
+fi
+
+write x;
+
+if a < b then
+x:=0;
+else
+x := 1; 
+fi
+
+while c = 0 do
+x:=x+1;
+od
+
+write x;
+write "the gcd of\n";
+write y+1;
+end
