@@ -12,14 +12,13 @@ bean_parse.cmx : bean_ast.cmx bean_parse.cmi
 bean_pprint.cmo : bean_pprint.cmi
 bean_pprint.cmx : bean_pprint.cmi
 
+symbol.cmi :
+symbol.cmo : symbol.cmi
+symbol.cmx : symbol.cmi
 
-symbol.cmi:
-symbol.cmo: symbol.cmi
-symbol.cmx: symbol.cmi
-
-analyze.cmi: symbol.cmi
-analyze.cmo: analyze.cmi symbol.cmi
-analyze.cmx: analyze.cmi symbol.cmi
+analyze.cmi : symbol.cmi
+analyze.cmo : analyze.cmi symbol.cmi
+analyze.cmx : analyze.cmi symbol.cmi
 
 codegen.cmi: symbol.cmi
 codegen.cmo: codegen.cmi symbol.cmi

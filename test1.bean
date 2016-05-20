@@ -2,14 +2,24 @@ typedef{
 	a: int,
 	b: int
 } type_x
+typedef{
+	c: type_x,
+	d: int
+}type_y
 
 proc main()
 
+type_y y;
 int a;
-type_x x;
-{c: int} y;
-bool b;
+int b;
 
-x.a := a + y.c;
+f(a,y,b);
+end
 
+proc f(ref int a, ref type_y y, val int b)
+int c;
+int d;
+
+a := 1;
+b := a + a;
 end

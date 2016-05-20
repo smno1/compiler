@@ -1,8 +1,31 @@
 (* Define the types for each symbol table element *)
-type symbol={identifier:string; slot:int; sym_typespec:string; scope:string; sym_size:int; pass_by_ref:bool; super_symbol:string }
-type typedef={typename:string;  typespec:string; type_size:int; sub_type:bool}
-type fielddef={fieldname:string;  field_typespec:string; belong_type:string; field_size:int; sub_field:bool }
-type proc={proc_name:string; proc_size:int }
+type symbol = {
+    identifier:string; 
+    slot:int; 
+    sym_typespec:string; 
+    scope:string; 
+    sym_size:int; 
+    pass_by_ref:bool; 
+    super_symbol:string; 
+    param:bool 
+}
+type typedef = {
+    typename:string;
+    typespec:string;
+    type_size:int;
+    sub_type:bool
+}
+type fielddef = {
+    fieldname:string;
+    field_typespec:string;
+    belong_type:string;
+    field_size:int;
+    sub_field:bool
+}
+type proc = {
+    proc_name:string;
+    proc_size:int
+}
 
 
 (* Define the 4 types of symbol tables *)
@@ -14,11 +37,10 @@ type proc_stack={mutable proc_list : proc list}
 
 (* default elements *)
 let symbol_not_found={identifier="not_found_404";slot=0;sym_typespec="not_found"; 
-        scope="not_found";sym_size=0;pass_by_ref=false;super_symbol="not_found"}
+        scope="not_found";sym_size=0;pass_by_ref=false;super_symbol="not_found";param=false}
 let typedef_not_found={typename="not_found_404";  typespec="not_found"; type_size=0; sub_type=false }
 let fielddef_not_found={fieldname="not_found_404";  field_typespec="not_found"; belong_type="not_found";field_size=0;sub_field=false }
 let proc_not_found={proc_name="not_found_404"; proc_size=0 }
-
 
 let symbol_table= {symbol_list=[]}
 let typedef_table= {typedef_list=[]}
@@ -28,6 +50,14 @@ let proc_table= {proc_list=[]}
 (* all the `find element` functions *)
 let find_symbol id scope =
     try (List.find (fun s->s.identifier=id && s.scope=scope) symbol_table.symbol_list) with Not_found -> symbol_not_found
+
+let find_symbol_by_slot slot scope =
+    try (List.find (fun s->s.slot=slot && s.scope=scope) symbol_table.symbol_list) with Not_found -> symbol_not_found
+
+let find_symbol_instance symbol scope =
+    let id = symbol.identifier in
+    let scope_name = scope.proc_name in
+    try (List.find (fun s->s.identifier=id && s.scope=scope_name) symbol_table.symbol_list) with Not_found -> symbol_not_found
 
 let find_typedef id =
     try (List.find (fun s->s.typename=id) typedef_table.typedef_list) with Not_found -> typedef_not_found
@@ -43,10 +73,14 @@ let find_proc id =
 let add_symbol x =
     if not (List.exists (fun s->s.identifier=x.identifier && s.scope=x.scope) symbol_table.symbol_list) then
         symbol_table.symbol_list <- symbol_table.symbol_list@[x]
+    else
+        failwith "Error: symbol declaration duplicated."
 
 let add_typedef x =
     if not (List.exists (fun s->s.typename=x.typename) typedef_table.typedef_list) then
         typedef_table.typedef_list <- typedef_table.typedef_list@[x]
+    else
+        failwith "Error: type definition duplicated."
 
 let add_fielddef x =
     if not (List.exists (fun s->s.fieldname=x.fieldname && s.belong_type=x.belong_type) fielddef_table.fielddef_list) then
@@ -79,6 +113,9 @@ let find_all_fields type_name =
 (* slot -1 indicate the symbol is an overview symbol *)
 let find_all_symbol proc_name = 
     List.filter (fun x -> x.scope = proc_name && x.slot <> (-1)) symbol_table.symbol_list 
+
+let find_all_params proc_name = 
+    List.filter (fun x -> x.scope = proc_name && x.slot <> (-1) && x.param = true) symbol_table.symbol_list 
 
 
 (* `calculate the size it takes` functions for proc and typedef *)
@@ -132,4 +169,3 @@ let print_field_list flst=
 
 let print_proc_list plst=
     List.iter (fun x -> print_string (x.proc_name^" "^(string_of_int x.proc_size)^"--\n")) plst
-

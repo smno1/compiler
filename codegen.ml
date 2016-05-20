@@ -1,8 +1,10 @@
 open Bean_ast
 open Format
 open Symbol
+open Type_checking
 
 let labelnum = ref 0
+let regparam = ref 0
 
 let cg_bool fmt b reg = 
     if b then
@@ -13,16 +15,31 @@ let cg_bool fmt b reg =
 let cg_int fmt i reg = 
     fprintf fmt "int_const r%d, %d\n" reg i
 
-let rec get_lvalue_symbol lvalue namelist = 
+let rec get_lvalue_list lvalue namelist = 
     match lvalue with
           LId(ident) -> ident :: namelist
         | LField((sublvalue,ident)) -> let newnamelist = ident :: namelist in
-                                       get_lvalue_symbol sublvalue newnamelist
+                                       get_lvalue_list sublvalue newnamelist
 
 let cg_lvalue_load fmt lvalue scope reg = 
-    let lsymbol = String.concat "." (get_lvalue_symbol lvalue []) in
-    let lsymbolslot = (Symbol.find_symbol lsymbol scope).slot in
-    fprintf fmt "load r%d, %d\n" reg lsymbolslot
+    let lsymbol = String.concat "." (get_lvalue_list lvalue []) in
+    let lsymbolrecord = (Symbol.find_symbol lsymbol scope) in
+    let lsymbolslot = lsymbolrecord.slot in
+    if lsymbolrecord.pass_by_ref then
+        (fprintf fmt "load r%d, %d\n" reg lsymbolslot;
+         fprintf fmt "load_indirect r%d, r%d\n" reg reg)
+    else
+        (fprintf fmt "load r%d, %d\n" reg lsymbolslot)
+
+let cg_lvalue_store fmt lvalue scope = 
+    let lsymbol = String.concat "." (get_lvalue_list lvalue []) in
+    let lsymbolrecord = (Symbol.find_symbol lsymbol scope) in
+    let lsymbolslot = lsymbolrecord.slot in
+    if lsymbolrecord.pass_by_ref then
+        (fprintf fmt "load r1, %d\n" lsymbolslot;
+         fprintf fmt "store_indirect r1, r0\n")
+    else
+        (fprintf fmt "store %d, r0\n" lsymbolslot)
 
 let cg_uminus fmt (unop, expr) reg = 
     let reg1 = reg + 1 in
@@ -59,74 +76,137 @@ and cg_unop fmt (unop, expr) scope reg =
           Op_minus-> cg_uminus fmt (unop, expr) reg
         | Op_not -> fprintf fmt "not r%d, r%d\n" reg reg
 
-let cg_rvalue fmt rvalue scope = 
-    match rvalue with
-          Rexpr(expr)-> cg_expr fmt expr scope 0
-        | Rstruct(rs) -> fprintf fmt ""
-
-let cg_lvalue fmt lvalue scope = 
-    match lvalue with
-      LId(ident) -> let slotnum = (Symbol.find_symbol ident scope).slot in
-                    fprintf fmt "store %d, r0\n" slotnum
-    | LField(field) -> fprintf fmt ""
-
-let assign_atom fmt latom ridlist lbase rbase = 
+let cg_assign_atom fmt latom ridlist lbase rbase mode = 
         let llen = String.length latom.identifier in
         let ratom = List.filter
-            (fun x -> let rlen = String.length x.identifier in
-                      String.sub latom.identifier lbase llen == String.sub x.identifier rbase rlen
-            )ridlist in
-        fprintf fmt "load r0, %d" (List.hd ratom).slot;
-        fprintf fmt "store %d, r0" latom.slot
+            (fun x -> 
+                let rlen = String.length x.identifier in
+                let left = String.sub latom.identifier lbase (llen-lbase) in
+                let right = String.sub x.identifier rbase (rlen-rbase) in
+                left = right;
+            ) ridlist in
+        match mode with
+            | 0 -> fprintf fmt "load r0, %d\n" (List.hd ratom).slot;
+                   fprintf fmt "store %d, r0\n" latom.slot
+            | 1 -> fprintf fmt "load r%d, %d\n" !regparam (List.hd ratom).slot;
+                   regparam := !regparam + 1
+            | 2 -> fprintf fmt "load_address r%d, %d\n" !regparam (List.hd ratom).slot;
+                   regparam := !regparam + 1
+            | 3 -> fprintf fmt "load r0, %d\n" (List.hd ratom).slot;
+                   fprintf fmt "load_indirect r0, r0\n";
+                   fprintf fmt "load r1, %d\n" latom.slot;
+                   fprintf fmt "store_indirect r1, r0\n"
+            | 4 -> fprintf fmt "load r0, %d\n" (List.hd ratom).slot;
+                   fprintf fmt "load r1, %d\n" latom.slot;
+                   fprintf fmt "store_indirect r1, r0\n"
+            | 5 -> fprintf fmt "load r0, %d\n" (List.hd ratom).slot;
+                   fprintf fmt "load_indirect r0, r0\n";
+                   fprintf fmt "store %d, r0\n" latom.slot
+            | _ -> ()
 
-let assign_type fmt lid rid scope = 
+let cg_assign_type fmt lid rid scope mode = 
     let lidlist = Symbol.get_leaf_symbol_by_super_symbol lid scope in
     let ridlist = Symbol.get_leaf_symbol_by_super_symbol rid scope in
     let lbase = String.length lid in
     let rbase = String.length rid in
-    List.iter (fun x -> assign_atom fmt x ridlist lbase rbase) lidlist
+    List.iter (fun x -> cg_assign_atom fmt x ridlist lbase rbase mode) lidlist
 
-let cg_assign fmt (lvalue, rvalue) scope = 
-    fprintf fmt "# assignment\n";
-    let lsymbol = String.concat "." (get_lvalue_symbol lvalue []) in
-    let lsymbolslot = (Symbol.find_symbol lsymbol scope).slot in
-    match lsymbolslot with
-          -1 -> fprintf fmt ""
-        | _ -> let Rexpr(expr) = rvalue in
-               cg_expr fmt expr scope 0;
-               fprintf fmt "store %d, r0\n" lsymbolslot
+let rec cg_assign fmt llist rvalue scope = 
+    let lsymbol = String.concat "." llist in
+    let lsymbolrecord = Symbol.find_symbol lsymbol scope in
+    let lsymbolslot = lsymbolrecord.slot in
+    if lsymbolslot = -1 then
+        (match rvalue with
+            Rexpr(expr) -> 
+                (match expr with
+                    Elval(rlvalue) ->
+                        let rsymbol = String.concat "." (get_lvalue_list rlvalue []) in
+                        let rsymbolrecord = Symbol.find_symbol rsymbol scope in
+                        match (lsymbolrecord.pass_by_ref, rsymbolrecord.pass_by_ref) with
+                            | (true,true) -> cg_assign_type fmt lsymbol rsymbol scope 3
+                            | (true,false) -> cg_assign_type fmt lsymbol rsymbol scope 4
+                            | (false,true) -> cg_assign_type fmt lsymbol rsymbol scope 5
+                            | (false,false) -> cg_assign_type fmt lsymbol rsymbol scope 0
+                    | _ -> ())
+            | Rstruct(structinit) -> 
+                List.iter (fun x ->
+                            let (ident,subrvalue) = x in
+                            let newlist = llist@[ident] in
+                            cg_assign fmt newlist subrvalue scope) structinit)
+    else
+        (match rvalue with
+            | Rexpr(expr) -> cg_expr fmt expr scope 0;
+                             if lsymbolrecord.pass_by_ref then
+                                (fprintf fmt "load r1, %d\n" lsymbolslot;
+                                 fprintf fmt "store_indirect r1, r0\n")
+                             else
+                                (fprintf fmt "store %d, r0\n" lsymbolslot)
+            | _ -> ())
 
 let cg_read fmt lvalue scope = 
-    let lvaluetype = 1 in
+    let lvaluetype = Type_checking.match_lvalue scope lvalue in
     fprintf fmt "# read\n";
     match lvaluetype with
-          0-> fprintf fmt "call_builtin read_bool\n";
-        | 1-> fprintf fmt "call_builtin read_int\n";
-    cg_lvalue fmt lvalue scope
+        | "bool" -> fprintf fmt "call_builtin read_bool\n";
+        | "int" -> fprintf fmt "call_builtin read_int\n";
+        | _ -> ();
+    cg_lvalue_store fmt lvalue scope
 
 let cg_write fmt wexpr scope = 
-    let exprtype = 1 in
     fprintf fmt "# write\n";
     cg_expr fmt wexpr scope 0;
+    let exprtype = Type_checking.match_expr scope wexpr in
     match exprtype with
-          0-> fprintf fmt "call_builtin print_bool\n"
-        | 1-> fprintf fmt "call_builtin print_int\n"
+        | "bool" -> fprintf fmt "call_builtin print_bool\n"
+        | "int" -> fprintf fmt "call_builtin print_int\n"
+        | _ -> ()
 
 let cg_writes fmt ws = 
     fprintf fmt "# write\n";
     fprintf fmt "string_const r0, %s\n" ws;
     fprintf fmt "call_builtin print_string\n"
 
-let cg_call fmt (id, exprlist) = 
-    fprintf fmt "# call\n"
+let cg_parameter_load fmt procname expr scope = 
+    match expr with
+        | Elval(lva) -> let rsymbol = String.concat "." (get_lvalue_list lva []) in
+                        let rslot = (Symbol.find_symbol rsymbol scope).slot in
+                        let lrecord = (Symbol.find_symbol_by_slot !regparam procname) in
+                        if rslot = -1 then
+                            (let lident = lrecord.identifier in
+                             let llen = String.index lident '.' in
+                             let lsymbol = String.sub lident 0 llen in
+                             if lrecord.pass_by_ref then
+                                (cg_assign_type fmt lsymbol rsymbol scope 2)
+                             else
+                                (cg_assign_type fmt lsymbol rsymbol scope 1)
+                             )
+                        else
+                            if lrecord.pass_by_ref then
+                                (fprintf fmt "load_address r%d, %d\n" !regparam rslot;
+                                regparam := !regparam + 1)
+                            else
+                                (fprintf fmt "load r%d, %d\n" !regparam rslot;
+                                regparam := !regparam + 1)
+        | _ -> cg_expr fmt expr scope !regparam;
+               regparam := !regparam + 1
+
+
+let cg_call fmt (procname, exprs) scope = 
+    fprintf fmt "# call\n";
+    regparam := 0;
+    List.iter (fun x -> cg_parameter_load fmt procname x scope) exprs;
+    fprintf fmt "call proc_%s\n" procname
 
 let rec cg_stmt fmt stmt scope= 
     match stmt with
-          Assign(ass) -> cg_assign fmt ass scope
+        | Assign((lvalue,rvalue)) ->
+            fprintf fmt "# assignment\n";
+            let llist = get_lvalue_list lvalue [] in
+            cg_assign fmt llist rvalue scope
         | Read(rlv) -> cg_read fmt rlv scope
         | Write(wexpr) -> cg_write fmt wexpr scope
         | WriteS(ws) -> cg_writes fmt ws
-        | Call(c)-> cg_call fmt c
+        | Call(c)-> cg_call fmt c scope
         | IfThen(ifth)-> cg_if_then fmt ifth scope
         | IfThenElse(ifte)-> cg_if_then_else fmt ifte scope
         | While(w)-> cg_while fmt w scope
@@ -163,7 +243,7 @@ and cg_while fmt (expr, stmts) scope =
 
 let cg_vardecl fmt (typespec, ident) scope = 
     match typespec with
-          Bool -> let slotnum = (Symbol.find_symbol ident scope).slot in
+        | Bool -> let slotnum = (Symbol.find_symbol ident scope).slot in
                   fprintf fmt "store %d, r0\n" slotnum
         | Int -> let slotnum = (Symbol.find_symbol ident scope).slot in
                  fprintf fmt "store %d, r0\n" slotnum
@@ -181,7 +261,19 @@ let cg_procbody fmt procbody scope =
     List.iter (fun x -> (cg_stmt fmt) x scope) procbody.stmts
 
 let cg_parameter fmt (passspec,typespec,ident) scope = 
-    fprintf fmt ""
+    match typespec with
+        | Bool -> let slotnum = (Symbol.find_symbol ident scope).slot in
+                  fprintf fmt "store %d, r%d\n" slotnum !regparam;
+                  regparam := !regparam + 1
+        | Int -> let slotnum = (Symbol.find_symbol ident scope).slot in
+                  fprintf fmt "store %d, r%d\n" slotnum !regparam;
+                  regparam := !regparam + 1
+        | Flist(fields)-> let symlist = Symbol.get_leaf_symbol_by_super_symbol ident scope in
+                          List.iter (fun x -> fprintf fmt "store %d, r%d\n" x.slot !regparam;
+                                              regparam := !regparam + 1) symlist
+        | Id(id) -> let symlist = Symbol.get_leaf_symbol_by_super_symbol ident scope in
+                    List.iter (fun x -> fprintf fmt "store %d, r%d\n" x.slot !regparam;
+                                        regparam := !regparam + 1) symlist
 
 let cg_proc fmt (procheader,procbody) = 
     let framesize = (Symbol.find_proc procheader.procname).proc_size in
@@ -189,6 +281,7 @@ let cg_proc fmt (procheader,procbody) =
     fprintf fmt "# prologue\n";
     fprintf fmt "push_stack_frame %d\n" framesize;
     if (List.length procheader.parameters) > 0 then (
+        regparam := 0;
         List.iter (fun x -> (cg_parameter fmt) x procheader.procname) procheader.parameters;
     );
     cg_procbody fmt procbody procheader.procname;

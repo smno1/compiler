@@ -4,12 +4,16 @@
 (* Also to mention, this version works for ocaml *)
 (* 3.11.2                                        *)
 (* --------------------------------------------- *)
+open Printexc
 module P = Bean_parse
 module F = Format
 (*module PP = Bean_pprint*)
 
 module CG = Codegen 
 module A = Analyze
+module TC = Type_checking
+  
+
 
 
 (* Argument parsing code *)
@@ -47,8 +51,13 @@ let main () =
       | PrettyPrint ->
             prerr_string "This is not pprint."
       | Compile ->
+          begin
             A.alyz_program prog;
+           (try
+              TC.check_program prog
+            with exn -> print_string (Printexc.to_string exn));
             CG.generate_program F.std_formatter prog
+          end
         (*prerr_string "Sorry, cannot generate code yet.\n"*)
     with exn -> ()
 
