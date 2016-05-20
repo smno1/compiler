@@ -48,10 +48,10 @@ let main () =
       | Compile -> 
           begin
             A.alyz_program prog;
-            A.show_table();
-            try
+            (try
               TC.check_program prog
-            with exn -> print_string (Printexc.to_string exn)
+            with exn -> (print_string (Printexc.to_string exn); print_string "\n\n"));
+            A.show_table()
           end
     with exn -> ()
 

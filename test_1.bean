@@ -1,0 +1,16 @@
+typedef {
+	a: int,
+	b: int
+} type_x
+
+proc main()
+
+int a;
+type_x x;
+{c: int} y;
+bool b;
+
+
+read a;
+
+end

@@ -1,7 +1,7 @@
 TARGETS = bean
 TARGETS_BYTE=$(TARGETS:%=%.byte)
 
-MODULES = bean_ast bean_lex bean_parse bean_pprint symbol_table analyze type_checking
+MODULES = bean_ast bean_lex bean_parse bean_pprint symbol analyze type_checking
 MLFILES = $(addsuffix .ml, $(MODULES))
 CMOFILES = $(addsuffix .cmo, $(MODULES))
 CMXFILES = $(addsuffix .cmx, $(MODULES))

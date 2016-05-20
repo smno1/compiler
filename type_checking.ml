@@ -1,7 +1,8 @@
 (* This file contains all the well-formedness checkers *)
-open Symbol_table
+open Symbol
 open Bean_ast
 open Printf
+open String
 
 (* ================================================ *)
 (* =====      Utility Functions         =========== *)
@@ -10,16 +11,21 @@ open Printf
 (* check if a symbol is in the scope *)
 let check_symbol symbol scope = 
 	let symbol_name = symbol.identifier in
-	if not (List.exists (fun x -> x.identifier = symbol_name && x.scope = scope) Symbol_table.symbol_table.symbol_list) then
-		failwith "Error: this symbol is not defined.\n"
+	if not (List.exists (fun x -> x.identifier = symbol_name && x.scope = scope) Symbol.symbol_table.symbol_list) then
+		failwith "Error: this symbol is not defined."
 
 let check_symbol_id symbol_name scope = 
-	if not (List.exists (fun x -> x.identifier = symbol_name && x.scope = scope) Symbol_table.symbol_table.symbol_list) then
-		failwith "Error: this symbol is not defined.\n"
+	print_string "Checking id ... ";
+	Printf.printf "%s" symbol_name;
+	print_string "\n";
+	if not (List.exists (fun x -> x.identifier = symbol_name && x.scope = scope) Symbol.symbol_table.symbol_list) then
+		failwith "Error: this symbol is not defined."
+	else
+		print_string "Success !!\n";;
 
 let check_field field_name type_name =
-	if not (List.exists (fun x -> x.fieldname = field_name && x.belong_type = type_name) Symbol_table.fielddef_table.fielddef_list) then
-		failwith "Error: this field is not defined in the type.\n"
+	if not (List.exists (fun x -> x.fieldname = field_name && x.belong_type = type_name) Symbol.fielddef_table.fielddef_list) then
+		failwith "Error: this field is not defined in the type."
 
 let rec convert_to_primitive type_instance = []
 (* 	let fieldsList = find_all_fields type_instance.typename in
@@ -98,6 +104,10 @@ let unop_type = function
 
 (* get the real type of symbol *)
 let rec match_symbol supproc id =
+	print_string "Matching symbol ... ";
+	Printf.printf "%s" id;
+	print_string "\n";
+	check_symbol_id id supproc;
 	let symbol = find_symbol id supproc in
 	let symbol_type = symbol.sym_typespec in
 	let real_type = look_up_origin_type symbol_type in
@@ -105,16 +115,23 @@ let rec match_symbol supproc id =
 
 (* calculate the type of lvalue *)
 let rec match_lvalue supproc lvalue =
+	print_string "Checking lvalue ... ";
+	let id_list = [] in
 	match lvalue with
 		| LId(id) -> match_symbol supproc id
-		| LField(lfield) -> match_field supproc lfield
-
-(* get the real type of field *)
-and match_field supproc (lvalue, id) =
-	let field = find_fielddef id supproc in
-	let field_type = field.field_typespec in
-	let real_type = look_up_origin_type field_type in
-	real_type
+		| LField(lfield) -> (Printf.printf "%s" (String.concat "." (
+							get_id_lfield supproc lfield id_list));
+							print_string "\n";
+							match_symbol supproc (String.concat "." (
+							get_id_lfield supproc lfield id_list)))
+		
+and get_id_lvalue supproc lvalue idlst =
+	match lvalue with
+		| LId(id) -> idlst@[id]
+		| LField(lfield) -> get_id_lfield supproc lfield idlst
+and get_id_lfield supproc (lvalue, id) idlst = 
+	let newlst = get_id_lvalue supproc lvalue idlst in
+	newlst@[id]
 
 (* calculate the type of an expression *)
 let rec match_expr supproc expr =
@@ -132,7 +149,7 @@ and match_binop supproc (expr1, binop, expr2) =
 	if ((expr1_type = expr2_type) && (binop_type binop) = "bool") then (
 		if (expr1_type = "int" && (binop_op_type binop) = "bb") ||
 		   (expr1_type = "bool" && (binop_op_type binop) = "bi") then
-		   failwith "Error: Operator/operands types mismatch.\n"
+		   failwith "Error: Operator/operands types mismatch."
 		else
 			"bool"
 	)
@@ -140,7 +157,7 @@ and match_binop supproc (expr1, binop, expr2) =
 		if (expr1_type = "int" && expr2_type = "int" && (binop_type binop) = "int") then
 			"int"
 		else
-			failwith "Error: Operator/operands types mismatch.\n"
+			failwith "Error: Operator/operands types mismatch."
 	)
 
 (* calculate the type of unop expr *)
@@ -152,7 +169,7 @@ and match_unop supproc (unop, expr) =
 		if (expr_type = "int" && (unop_type unop) = "int") then
 			"int"
 		else
-			failwith "Error: Operator/operands types mismatch.\n"
+			failwith "Error: Operator/operands types mismatch."
 	)
 
 (* ================================================ *)
@@ -163,11 +180,7 @@ and match_unop supproc (unop, expr) =
 let rec check_lvalue supproc lvalue =
 	match lvalue with
 		| LId(id) -> check_symbol_id id supproc
-		| LField(lfield) -> check_lfield supproc lfield
-(* check lfield: check if the field is in the scope of typedef *)
-and check_lfield supproc (lvalue, id) =
-	check_lvalue supproc lvalue
-	(* TODO: needs checking *)
+		| LField(lfield) -> ()
 
 (* check struct initialization:
  * 		check if the field name matches the field name defined *)
@@ -186,10 +199,10 @@ let rec check_expr supproc expr =
 (* check rvalue
  *		if rvalue is an expression --> call check_expr
  * 		if rvalue is an struct --> call check_struct *)
-let rec check_rvalue supproc type_name rvalue =
+(* let rec check_rvalue supproc type_name rvalue =
 	match rvalue with
 		| Rexpr(expr) -> check_expr supproc expr
-		| Rstruct(rs) -> () (* check_struct supproc type_name rs *)
+		| Rstruct(rs) -> check_struct supproc type_name rs *)
 
 (* check each statement, matching with varies statement types *)
 let rec check_stmt supproc stmt =
@@ -205,9 +218,13 @@ let rec check_stmt supproc stmt =
 
 (* check assignment: check lvalue's type match rvalue's type *)
 and check_assign supproc (lvalue, rvalue) = (* TODO: match rvalue with expr/struct *)
-	check_lvalue supproc lvalue;
-	let lvalue_type = match_lvalue supproc lvalue in
+	match_lvalue supproc lvalue;
+	()
+	(* let lvalue_type = match_lvalue supproc lvalue in
 	check_rvalue supproc lvalue_type rvalue;
+	let rvalue_type = match_rvalue supproc rvalue in
+	if not (lvalue_type = rvalue_type) then
+		failwith "Error: The assignment is invalid.\n" *)
 
 	(* let lvalue_symbol = find_symbol_instance lvalue supproc in
 	let rvalue_symbol = get_expression_type rvalue supproc in (* TODO: get_expression_type *)
@@ -219,11 +236,11 @@ and check_assign supproc (lvalue, rvalue) = (* TODO: match rvalue with expr/stru
 
 (* check read statement: check the lvalue is bool/int or alias of these *)
 and check_read supproc lvalue =
-	check_lvalue supproc lvalue;
+	print_string "Checking read statement ... \n";
 	let lvalue_type = match_lvalue supproc lvalue in
 	if not (lvalue_type = "bool" || lvalue_type = "int") then
 	begin
-		failwith "Error: Can only read bool or int values.\n"
+		failwith "Error: Can only read bool or int values."
 	end
 
 	(* let lvalue_symbol = find_symbol lvalue supproc in
@@ -258,7 +275,7 @@ and check_ifthen supproc (expr, stmtlst) =
 	let expr_type = match_expr supproc expr in
 	begin
 		if not(expr_type = "bool") then
-			failwith "Error: if statement can only take bool type.\n"
+			failwith "Error: if statement can only take bool type."
 		(* List.iter (fun x -> check_stmt supproc x) stmtlst *)
 	end
 
@@ -270,7 +287,7 @@ and check_ifthenelse supproc (expr, then_stmtlst, else_stmtlst) =
 	let expr_type = match_expr supproc expr in
 	begin
 		if not(expr_type = "bool") then
-			failwith "Error: if statement can only take bool type.\n"
+			failwith "Error: if statement can only take bool type."
 		(* List.iter (fun x -> check_stmt supproc x) then_stmtlst
 		List.iter (fun x -> check_stmt supproc x) else_stmtlst *)
 	end
@@ -279,12 +296,14 @@ and check_ifthenelse supproc (expr, then_stmtlst, else_stmtlst) =
  * 		check `while` expr is bool
  * 		check `do` block --> recursive call check_stmt *)
 and check_while supproc (expr, stmtlst) = 
+	print_string "Checking While statement .......\n";
 	let expr_type = match_expr supproc expr in
-	begin
+	(begin
 		if not(expr_type = "bool") then
-			failwith "Error: while statement can only take bool type.\n"
+			failwith "Error: while statement can only take bool type."
 		(* List.iter (fun x -> check_stmt supproc x) stmtlst *)
-	end
+	end);
+	print_string "Exiting While statement ......."
 
 
 (* Check the procbody, iter through all statements *)
@@ -293,9 +312,13 @@ let check_procbody procname procbody =
 
 (* Check procs *)
 let check_proc (procheader, procbody) = 
+	print_string "Checking proc ... ";
 	let procname = procheader.procname in
+	Printf.printf "%s" procname;
+	print_string "\n";
 	check_procbody procname procbody
 
 (* Entry point: given the program go check all its children *)
 let check_program program =
+	print_string "Checking program ...\n";
 	List.iter check_proc program.procs

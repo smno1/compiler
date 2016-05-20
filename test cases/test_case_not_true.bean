@@ -37,7 +37,7 @@ int n;
 		   	    m := ((((m - 1))))  ;
 		   	    m := - (5 + 2 - 4 + 1);
 		   	    x := -(-(1));
-		   	    x := (not x) != y;
+		   	    #x := (not x) != y;
 		   	    write "fak;sdfj";
 		   	    x := 1 + (2 + 3);
 fi od od
