@@ -111,6 +111,9 @@ let find_all_fields type_name =
 let find_all_symbol proc_name = 
     List.filter (fun x -> x.scope = proc_name && x.slot <> (-1)) symbol_table.symbol_list 
 
+let find_all_params proc_name = 
+    List.filter (fun x -> x.scope = proc_name && x.slot <> (-1) && x.param = true) symbol_table.symbol_list 
+
 
 (* `calculate the size it takes` functions for proc and typedef *)
 let calc_size_type type_name = 
@@ -153,7 +156,7 @@ let b2s b=
   if b then "true" else "false"
 
 let print_symbol_list slst=
-    List.iter (fun x -> print_string (x.identifier^" "^(string_of_int x.slot)^" "^x.sym_typespec^" "^x.scope^" "^(string_of_int x.sym_size)^" "^x.super_symbol^" "^(b2s x.pass_by_ref)^"--\n")) slst
+    List.iter (fun x -> print_string (x.identifier^" "^(string_of_int x.slot)^" "^x.sym_typespec^" "^x.scope^" "^(string_of_int x.sym_size)^" "^x.super_symbol^" "^(b2s x.pass_by_ref)^" "^(string_of_bool x.param)^"--\n")) slst
 
 let print_type_list tlst=
     List.iter (fun x -> print_string (x.typename^" "^x.typespec^" "^(string_of_int x.type_size)^" "^(b2s x.sub_type)^"--\n")) tlst

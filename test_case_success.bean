@@ -21,11 +21,17 @@ i:=6*i + 4; end
 proc main ()
 int m;
 int n;
+bool y;
+bool x;
 a_record a;
+b_record b;
 
 	read n;
+	q(true, false);
 	a.f := n + 2;
 	m := n;
+	a := { ff = {g = true} };
+	#n := -(true - 1);
 
 	while n>1 do
 		while m>0 do
@@ -42,9 +48,9 @@ a_record a;
 		   		m := (n - m)+(2+4);
 		   	    m := (((((m - 1)))))  ;
 		   	    m := (((-(3+2*(m - 1)))))  ;
-		   	    n := (not x) !=y;
-		   	    n := (not x=y) !=y;
-		   	    y := 2*(n/2);
+		   	    x := (not x) !=y;
+		   	    x := (not x=y) !=y;
+		   	    m := 2*(n/2);
 		   	    if 2*(n/2)=n then
 		   	    	n:=1;
 		   	    fi
