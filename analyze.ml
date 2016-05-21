@@ -21,7 +21,7 @@ and alyz_fielddef suptype (iden,fieldtype)=
                     Symbol.add_fielddef {fieldname=iden;  
                     field_typespec=origin_type;
                     belong_type=suptype; field_size=(find_typedef origin_type).type_size;
-                    sub_field=(origin_type != "int" && origin_type != "bool") }
+                    sub_field=(origin_type <> "int" && origin_type <> "bool") }
 
 (* generate typedef table *)
 let alyz_typedef (typespec,ident)=
@@ -36,7 +36,7 @@ let alyz_typedef (typespec,ident)=
       | Id(id)-> let origin_type=Symbol.look_up_origin_type id in
                     Symbol.add_typedef {typename=ident;  typespec=origin_type; 
                     type_size=(find_typedef origin_type).type_size; 
-                    sub_type=(origin_type != "int" && origin_type != "bool") }
+                    sub_type=(origin_type <> "int" && origin_type <> "bool") }
 
 (* Call when a parameter or varaible is declared with identifer refered to a structure *)
 (* recursive from structure symbol to all its children to add symbols to symbol table *)
