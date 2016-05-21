@@ -9,8 +9,9 @@ bean_lex.cmo : bean_parse.cmi
 bean_lex.cmx : bean_parse.cmx
 bean_parse.cmo : bean_ast.cmi bean_parse.cmi
 bean_parse.cmx : bean_ast.cmx bean_parse.cmi
-bean_pprint.cmo : bean_pprint.cmi
-bean_pprint.cmx : bean_pprint.cmi
+
+#bean_pprint.cmo : bean_pprint.cmi
+#bean_pprint.cmx : bean_pprint.cmi
 
 symbol.cmi :
 symbol.cmo : symbol.cmi

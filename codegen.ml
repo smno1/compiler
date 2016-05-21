@@ -119,14 +119,14 @@ let rec cg_assign fmt llist rvalue scope =
         (match rvalue with
             Rexpr(expr) -> 
                 (match expr with
-                    Elval(rlvalue) ->
+                    |Elval(rlvalue) ->
                         let rsymbol = String.concat "." (get_lvalue_list rlvalue []) in
                         let rsymbolrecord = Symbol.find_symbol rsymbol scope in
-                        match (lsymbolrecord.pass_by_ref, rsymbolrecord.pass_by_ref) with
+                        (match (lsymbolrecord.pass_by_ref, rsymbolrecord.pass_by_ref) with
                             | (true,true) -> cg_assign_type fmt lsymbol rsymbol scope 3
                             | (true,false) -> cg_assign_type fmt lsymbol rsymbol scope 4
                             | (false,true) -> cg_assign_type fmt lsymbol rsymbol scope 5
-                            | (false,false) -> cg_assign_type fmt lsymbol rsymbol scope 0
+                            | (false,false) -> cg_assign_type fmt lsymbol rsymbol scope 0)
                     | _ -> ())
             | Rstruct(structinit) -> 
                 List.iter (fun x ->
