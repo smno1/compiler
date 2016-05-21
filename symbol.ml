@@ -146,20 +146,25 @@ let look_up_origin_type type_name =
     !current_type
 
 let rec get_leaf_symbol_by_super_symbol supsymbl_name scope=
+    let symbl=find_symbol supsymbl_name scope in 
+        match symbl.sym_typespec with
+        |"int"|"bool"-> [symbl]
+        | _ -> get_leaves supsymbl_name scope
+and get_leaves supsymbl_name scope=
     let symlst=List.filter (fun x -> x.super_symbol = supsymbl_name && x.scope = scope) symbol_table.symbol_list in
     let leafsymblst=List.filter (fun x-> x.slot <> (-1) ) symlst in
     let supsymblst=List.filter (fun x-> x.slot = (-1) ) symlst in
     if ((List.length supsymblst)=0) then
         leafsymblst
     else
-        let subsymlst=List.flatten (List.map (fun x -> get_leaf_symbol_by_super_symbol x.identifier x.scope ) supsymblst) in
+        let subsymlst=List.flatten (List.map (fun x -> get_leaves x.identifier x.scope ) supsymblst) in
         leafsymblst@subsymlst
 
 let b2s b=
   if b then "true" else "false"
 
 let print_symbol_list slst=
-    List.iter (fun x -> print_string (x.identifier^" "^(string_of_int x.slot)^" "^x.sym_typespec^" "^x.scope^" "^(string_of_int x.sym_size)^" "^x.super_symbol^" "^(b2s x.pass_by_ref)^" "^(string_of_bool x.param)^"--\n")) slst
+    List.iter (fun x -> print_string (x.identifier^" "^(string_of_int x.slot)^" "^x.sym_typespec^" "^x.scope^" "^(string_of_int x.sym_size)^" "^x.super_symbol^" "^(b2s x.pass_by_ref)^"--\n")) slst
 
 let print_type_list tlst=
     List.iter (fun x -> print_string (x.typename^" "^x.typespec^" "^(string_of_int x.type_size)^" "^(b2s x.sub_type)^"--\n")) tlst
