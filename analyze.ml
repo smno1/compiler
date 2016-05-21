@@ -69,7 +69,7 @@ let rec alyz_subfield supproc supsymbl ref_flag param_flag (id,typespec)=
       | Flist(flst)-> alyz_subfieldlst_record supproc supsymbl fid ref_flag param_flag flst
       | Id(alias)-> let parameter_type=Symbol.find_typedef alias in
                     if parameter_type.sub_type then
-                      let flst=Symbol.find_all_fields alias in
+                      let flst=Symbol.find_all_fields parameter_type.typespec in
                         List.iter (add_symbol_from_an_identifer_record supproc fid ref_flag param_flag) flst;
                         Symbol.add_symbol {identifier=id; slot=(-1); sym_typespec="record"; 
                           scope=supproc; sym_size=(calc_size_record_by_super_symbol id);pass_by_ref=ref_flag;super_symbol=supsymbl; param=param_flag}
