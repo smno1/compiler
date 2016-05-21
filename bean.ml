@@ -11,10 +11,11 @@ module CG = Codegen
 module A = Analyze
 module TC = Type_checking
 
+(* Exception *)
+exception Semantic_Error of string;;
 
 (* Argument parsing code *)
 let infile_name = ref None
-
 type compiler_mode = PrettyPrint | Compile
 let mode = ref Compile
 
@@ -49,9 +50,13 @@ let main () =
       | Compile ->
           begin
             A.alyz_program prog;
-           (try
+            (* A.show_table(); *)
+            try
               TC.check_program prog
-            with exn -> print_string (Printexc.to_string exn); print_string "\n");
+            with exn -> ignore
+                        (print_string (Printexc.to_string exn); 
+                         print_string "\n";
+                         raise (Semantic_Error "e"));
             CG.generate_program F.std_formatter prog
           end
     with exn -> ()
