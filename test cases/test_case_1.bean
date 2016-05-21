@@ -1,4 +1,4 @@
-# adsjfasdfuiouewjlrn,adnkljahf
+# adsjfasdfuiouewjlrn,adnkljahf"\n"
 typedef {
 	f : int, f : 
 { g : bool, g : bool }
@@ -20,7 +20,7 @@ g = false };
 end
 
 proc p (ref int i)
-i:=6*i + 4; end
+i:=6*i + 4;end
 
 proc main ()
 int m;

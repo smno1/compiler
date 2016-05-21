@@ -1,7 +1,7 @@
 TARGETS = bean
 TARGETS_BYTE=$(TARGETS:%=%.byte)
 
-MODULES = bean_ast bean_lex bean_parse bean_pprint
+MODULES = bean_ast bean_lex bean_parse bean_pprint symbol analyze type_checking
 MLFILES = $(addsuffix .ml, $(MODULES))
 CMOFILES = $(addsuffix .cmo, $(MODULES))
 CMXFILES = $(addsuffix .cmx, $(MODULES))
@@ -49,7 +49,9 @@ clobber : clean
 .PHONY : clean clobber depend
 
 # include depend
-depend: bean_lex.ml bean_parse.ml
+depend: bean_lex.ml bean_parse.ml analyze.ml
 	$(OCAMLDEP) bean.ml bean.mli $(ALLMODULES:%=%.mli) $(ALLMODULES:%=%.ml) >Makefile.depend
+# depend: symbol_table.ml analyze.ml
+# 	$(OCAMLDEP) bean.ml bean.mli $(ALLMODULES:%=%.mli) $(ALLMODULES:%=%.ml) >Makefile.depend
 
 -include Makefile.depend

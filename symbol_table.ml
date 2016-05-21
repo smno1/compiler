@@ -51,9 +51,6 @@ let proc_table= {proc_list=[]}
 let find_symbol id scope =
     try (List.find (fun s->s.identifier=id && s.scope=scope) symbol_table.symbol_list) with Not_found -> symbol_not_found
 
-let find_symbol_by_slot slot scope =
-    try (List.find (fun s->s.slot=slot && s.scope=scope) symbol_table.symbol_list) with Not_found -> symbol_not_found
-
 let find_symbol_instance symbol scope =
     let id = symbol.identifier in
     let scope_name = scope.proc_name in
@@ -159,7 +156,7 @@ let b2s b=
   if b then "true" else "false"
 
 let print_symbol_list slst=
-    List.iter (fun x -> print_string (x.identifier^" "^(string_of_int x.slot)^" "^x.sym_typespec^" "^x.scope^" "^(string_of_int x.sym_size)^" "^x.super_symbol^" "^(b2s x.pass_by_ref)^" "^(string_of_bool x.param)^"--\n")) slst
+    List.iter (fun x -> print_string (x.identifier^" "^(string_of_int x.slot)^" "^x.sym_typespec^" "^x.scope^" "^(string_of_int x.sym_size)^" "^x.super_symbol^" "^(b2s x.pass_by_ref)^"--\n")) slst
 
 let print_type_list tlst=
     List.iter (fun x -> print_string (x.typename^" "^x.typespec^" "^(string_of_int x.type_size)^" "^(b2s x.sub_type)^"--\n")) tlst

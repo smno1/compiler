@@ -121,10 +121,3 @@ let show_table () =
     (* let subsymblst=Symbol.get_leaf_symbol_by_super_symbol "z" "q" in 
     print_string "\n======sub symbol table=======\n";
     Symbol.print_symbol_list subsymblst *)
-    
-
-
-
-
-
-
