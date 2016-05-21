@@ -32,21 +32,6 @@ let check_callid id =
 	if not (List.exists (fun x -> x.proc_name = id) proc_table.proc_list) then
 		failwith "Error: this proc is not defined."
 
-let rec convert_to_primitive type_instance = []
-(* 	let fieldsList = find_all_fields type_instance.typename in
-	let primitiveList = [] in
-	List.iter (fun x -> if x.typespec = "bool" || x.typespec = "int" 
-											then primitiveList <- x.typespec::primitiveList
-											else primitiveList <- (convert_to_primitive (find_typedef x.typespec))::primitiveList;) fieldsList;
-	!primitiveList
- *)
-
-(* compare 2 lists with primitive types *)
-let compare_list list1 list2 = 
-	if List.length list1 <> List.length list2 then false else
-	if (List.filter (fun x -> x.typespec = "bool") list1) = 
-	   (List.filter (fun x -> x.typespec = "bool") list2) then true else false
-
 (* sort the param list according to its sequence field *)
 let rec sort = function
     | [] -> []
@@ -55,25 +40,6 @@ and insert elem = function
     | [] -> [elem]
     | x :: l -> if elem.slot < x.slot then elem :: x :: l
                 else x :: insert elem l;;
-
-(* Ensures that a type congruent to an expected type *)
-let compare_type type1 type2 = 
-	if type1.typename = type2.typename then 
-		true
-	else ( (* if two type names equals, two types are the same *)
-		if type1.sub_type <> type2.sub_type then 
-			false 
-		else ( (* if two type are on different lvls, they are different *)
-			if not (type1.sub_type = true && type2.sub_type = true) then 
-				false
-			else (
-				if compare_list (convert_to_primitive type1) (convert_to_primitive type2) then 
-					true
-				else
-					false
-			)
-		)
-	)
 
 (* ================================================ *)
 (* ========      Type Functions         =========== *)
@@ -142,7 +108,6 @@ and get_name_lvalue supproc lvalue =
 		| LId(id) -> [id]
 		| LField(lfield) -> get_id_lfield supproc lfield []
 
-
 (* calculate the type of an expression *)
 let rec match_expr supproc expr =
 	match expr with
@@ -182,7 +147,6 @@ and match_unop supproc (unop, expr) =
 			failwith "Error: Operator/operands types mismatch."
 	)
 
-
 (* ================================================ *)
 (* ========     Check Functions         =========== *)
 (* ================================================ *)
@@ -194,19 +158,16 @@ let rec check_rvalue supproc type_name left_id_list rvalue =
 	print_string "Checking rvalue .................... ";
 	match rvalue with
 		| Rexpr(expr) -> (let right_type = match_expr supproc expr in 
-						  begin
-							  match_expr supproc expr;
-							  Printf.printf "%s" right_type; 
-							  print_string "\n";
-							  if type_name <> right_type then 
+						  if type_name <> right_type then 
 							  	failwith "Error: Assignment type mismatch."
-						  end)
+						 )
 		| Rstruct(rs) -> (print_string "Entering struct ..."; 
 						  if type_name <> "record" then 
 						  	failwith "Error: Assignment type mismatch, record != simple type."
 						  else (
-						  	check_struct supproc left_id_list rs;
-						  	()))(* check_struct supproc type_name rs *)
+						  	let type_name = check_struct supproc left_id_list rs in
+						  	match type_name with
+						  		|_ -> ()))(* check_struct supproc type_name rs *)
 (* check struct initialization:
  * 		check if the field name matches the field name defined *)
 and check_struct supproc left_id_list fieldlst =
@@ -219,7 +180,6 @@ and check_fieldinit supproc left_id_list (id, rvalue) =
 	let full_id = String.concat "." full_id_list in
 	let left_type = (find_symbol full_id supproc).sym_typespec in
 	check_rvalue supproc left_type full_id_list rvalue
-
 
 (* check each statement, matching with varies statement types *)
 let rec check_stmt supproc stmt =
@@ -251,8 +211,9 @@ and check_read supproc lvalue =
 
 (* check write statement: check symbols in expr --> call check_expr *)
 and check_write supproc expr =
-	match_expr supproc expr;
-	()
+	let type_name = match_expr supproc expr in
+	match type_name with
+		| _ -> ()
 
 (* check call statement: 
  * 		check if the proc name exists
@@ -280,7 +241,6 @@ and check_call supproc (id, exprlst) =
 			failwith "Error: Function call with wrong param types."
 	done
 		
-
 (* check `if then` statement:
  * 		check if `if` expr is bool
  *		check `then` block --> recursive call check_stmt *)
@@ -291,7 +251,6 @@ and check_ifthen supproc (expr, stmtlst) =
 		failwith "Error: if statement can only take bool type.";
 	List.iter (fun x -> check_stmt supproc x) stmtlst;
 	print_string "Exiting IF THEN ELSE statement ...........\n"
-
 
 (* check `if then else` statement:
  * 		check if `if` expr is bool

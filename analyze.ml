@@ -79,7 +79,7 @@ let rec alyz_subfield supproc supsymbl ref_flag param_flag (id,typespec)=
                             scope=supproc; sym_size=1; pass_by_ref=ref_flag; super_symbol=supsymbl; param=param_flag};
                           proc_slot_count := !proc_slot_count+1
 and alyz_subfieldlst_record supproc supsymbl ident ref_flag param_flag flst=
-    let fid=(if supsymbl="" then ident else supsymbl^"."^ident) in
+    (* let fid=(if supsymbl="" then ident else supsymbl^"."^ident) in *)
     List.iter (alyz_subfield supproc ident ref_flag param_flag) flst;
     Symbol.add_symbol{identifier=ident; slot=(-1); sym_typespec="record"; 
         scope=supproc; sym_size=(calc_size_record_by_super_symbol ident);pass_by_ref=ref_flag;super_symbol=supsymbl; param=param_flag}

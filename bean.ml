@@ -7,9 +7,10 @@
 open Printexc
 module P = Bean_parse
 module F = Format
-module PP = Bean_pprint
-module A= Analyze
+module CG = Codegen 
+module A = Analyze
 module TC = Type_checking
+
 
 (* Argument parsing code *)
 let infile_name = ref None
@@ -44,14 +45,14 @@ let main () =
        * otherwise, print the error msg *)
       match !mode with
       | PrettyPrint ->
-        PP.print_program F.std_formatter prog 
-      | Compile -> 
+            (prerr_string "Pretty Print mode is disabled.")
+      | Compile ->
           begin
             A.alyz_program prog;
-            (try
+           (try
               TC.check_program prog
-            with exn -> (print_string (Printexc.to_string exn); print_string "\n\n"));
-            A.show_table()
+            with exn -> print_string (Printexc.to_string exn); print_string "\n");
+            CG.generate_program F.std_formatter prog
           end
     with exn -> ()
 

@@ -1,0 +1,25 @@
+typedef{
+	a: int,
+	b: int
+} type_x
+
+
+typedef{
+	b: type_x,
+	d: int
+	}type_y
+
+
+proc main()
+
+int a;
+type_y x;
+type_x y;
+{c: int} z;
+bool b;
+
+
+x := {b = {a = a, b = a}, d = 0};
+
+
+end
