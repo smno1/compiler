@@ -76,9 +76,6 @@ let unop_type = function
 
 (* get the real type of symbol *)
 let rec match_symbol supproc id =
-	print_string "Matching symbol ... ";
-	Printf.printf "%s" id;
-	print_string "\n";
 	check_symbol_id id supproc;
 	let symbol = find_symbol id supproc in
 	let symbol_type = symbol.sym_typespec in
@@ -87,7 +84,6 @@ let rec match_symbol supproc id =
 
 (* calculate the type of lvalue *)
 let rec match_lvalue supproc lvalue =
-	print_string "Checking lvalue ... ";
 	let id_list = [] in
 	match lvalue with
 		| LId(id) -> match_symbol supproc id
@@ -155,14 +151,12 @@ and match_unop supproc (unop, expr) =
  *		if rvalue is an expression --> call match_expr
  * 		if rvalue is an struct --> call check_struct *)
 let rec check_rvalue supproc type_name left_id_list rvalue =
-	print_string "Checking rvalue .................... ";
 	match rvalue with
 		| Rexpr(expr) -> (let right_type = match_expr supproc expr in 
 						  if type_name <> right_type then 
 							  	failwith "Error: Assignment type mismatch."
 						 )
-		| Rstruct(rs) -> (print_string "Entering struct ..."; 
-						  if type_name <> "record" then 
+		| Rstruct(rs) -> (if type_name <> "record" then 
 						  	failwith "Error: Assignment type mismatch, record != simple type."
 						  else (
 						  	let type_name = check_struct supproc left_id_list rs in
@@ -175,7 +169,6 @@ and check_struct supproc left_id_list fieldlst =
  	List.map (check_fieldinit supproc left_id_list) fieldlst
 (* check if the lvalue names in the init is in the typedef *)
 and check_fieldinit supproc left_id_list (id, rvalue) = 
-	print_string " ---------------------\n";
 	let full_id_list = left_id_list@[id] in
 	let full_id = String.concat "." full_id_list in
 	let left_type = (find_symbol full_id supproc).sym_typespec in
@@ -202,7 +195,6 @@ and check_assign supproc (lvalue, rvalue) =
 
 (* check read statement: check the lvalue is bool/int or alias of these *)
 and check_read supproc lvalue =
-	print_string "Checking read statement ... \n";
 	let lvalue_type = match_lvalue supproc lvalue in
 	if not (lvalue_type = "bool" || lvalue_type = "int") then
 	begin
@@ -232,11 +224,6 @@ and check_call supproc (id, exprlst) =
 	for i = 0 to (call_num - 1) do
 		let define_type = (List.nth sorted_param_list i).sym_typespec in
 		let call_type = match_expr supproc (List.nth exprlst i) in
-		print_string "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n";
-		Printf.printf "%s" define_type;
-		print_string "\n";
-		Printf.printf "%s\n" call_type;
-		print_string "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n";
 		if call_type <> define_type then
 			failwith "Error: Function call with wrong param types."
 	done
@@ -245,37 +232,30 @@ and check_call supproc (id, exprlst) =
  * 		check if `if` expr is bool
  *		check `then` block --> recursive call check_stmt *)
 and check_ifthen supproc (expr, stmtlst) = 
-	print_string "Checking IF THEN statement ........\n";
 	let expr_type = match_expr supproc expr in
 	if not(expr_type = "bool") then
 		failwith "Error: if statement can only take bool type.";
-	List.iter (fun x -> check_stmt supproc x) stmtlst;
-	print_string "Exiting IF THEN ELSE statement ...........\n"
+	List.iter (fun x -> check_stmt supproc x) stmtlst
 
 (* check `if then else` statement:
  * 		check if `if` expr is bool
  * 		check `then` block --> recursive call check_stmt
  * 		check `else` block --> recursive call check_stmt *)
 and check_ifthenelse supproc (expr, then_stmtlst, else_stmtlst) = 
-	print_string "Checking IF THEN ELSE statement ........\n";
 	let expr_type = match_expr supproc expr in
 	if not(expr_type = "bool") then
 		failwith "Error: if statement can only take bool type.";
 	List.iter (fun x -> check_stmt supproc x) then_stmtlst;
-	List.iter (fun x -> check_stmt supproc x) else_stmtlst;
-	print_string "Exiting IF THEN ELSE statement ...........\n"
+	List.iter (fun x -> check_stmt supproc x) else_stmtlst
 
 (* check `while` statement:
  * 		check `while` expr is bool
  * 		check `do` block --> recursive call check_stmt *)
 and check_while supproc (expr, stmtlst) = 
-	print_string "Checking WHILE statement .......\n";
 	let expr_type = match_expr supproc expr in
 	if not(expr_type = "bool") then
 		failwith "Error: while statement can only take bool type.";
-	List.iter (fun x -> check_stmt supproc x) stmtlst;
-	print_string "Exiting WHILE statement ......."
-
+	List.iter (fun x -> check_stmt supproc x) stmtlst
 
 (* Check the procbody, iter through all statements *)
 let check_procbody procname procbody =
@@ -283,13 +263,9 @@ let check_procbody procname procbody =
 
 (* Check procs *)
 let check_proc (procheader, procbody) = 
-	print_string "Checking proc ... ";
 	let procname = procheader.procname in
-	Printf.printf "%s" procname;
-	print_string "\n";
 	check_procbody procname procbody
 
 (* Entry point: given the program go check all its children *)
 let check_program program =
-	print_string "Checking program ...\n";
 	List.iter check_proc program.procs
