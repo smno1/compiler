@@ -115,7 +115,7 @@ let find_all_symbol proc_name =
     List.filter (fun x -> x.scope = proc_name && x.slot <> (-1)) symbol_table.symbol_list 
 
 let find_all_params proc_name = 
-    List.filter (fun x -> x.scope = proc_name && x.slot <> (-1) && x.param = true) symbol_table.symbol_list 
+    List.filter (fun x -> x.scope = proc_name && x.param = true && x.super_symbol = "") symbol_table.symbol_list 
 
 
 (* `calculate the size it takes` functions for proc and typedef *)

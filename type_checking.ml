@@ -143,6 +143,14 @@ and match_unop supproc (unop, expr) =
 			failwith "Error: Operator/operands types mismatch."
 	)
 
+let match_basic_expr_type supproc expr =
+	match expr with
+		| Ebool(b) -> "bool"
+		| Eint(i) -> "int"
+		| Elval(lva) -> "lval"
+		| Ebinop(binop) -> "binop"
+		| Eunop(unop) -> "unop"
+
 (* ================================================ *)
 (* ========     Check Functions         =========== *)
 (* ================================================ *)
@@ -217,15 +225,20 @@ and check_call supproc (id, exprlst) =
 	let sorted_param_list  = sort param_list in
 	let call_num = List.length exprlst in
 	let define_num = List.length param_list in
-	(* TODO: check record types *)
-	check_callid proc_name;
-	if call_num <> define_num then
+	check_callid proc_name; (* check proc name *)
+	if call_num <> define_num then (* check param list length*)
 		failwith "Error: Function call parameter number does not match.";
-	for i = 0 to (call_num - 1) do
+	for i = 0 to (call_num - 1) do (* check each param*)
 		let define_type = (List.nth sorted_param_list i).sym_typespec in
 		let call_type = match_expr supproc (List.nth exprlst i) in
-		if call_type <> define_type then
-			failwith "Error: Function call with wrong param types."
+		let define_pass = (List.nth sorted_param_list i).pass_by_ref in
+		let call_pass = match_basic_expr_type supproc (List.nth exprlst i) in
+		if define_pass = true && call_pass <> "lval" then
+			failwith "Error: Cannot pass non-address type value into ref parameter."
+		else (
+			if call_type <> define_type then
+				failwith "Error: Function call with wrong param types.";
+		)
 	done
 		
 (* check `if then` statement:
