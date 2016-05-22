@@ -23,42 +23,40 @@ let mode = ref Compile
 (*  Specification for command-line options       *)
 (* --------------------------------------------- *)
 let (speclist:(Arg.key * Arg.spec * Arg.doc) list) =
-  ["-p",
-     Arg.Unit(fun () -> mode := PrettyPrint),
-     " Run the compiler in pretty-printer mode"
-  ]
+    ["-p",
+        Arg.Unit(fun () -> mode := PrettyPrint),
+        " Run the compiler in pretty-printer mode"
+    ]
 
 let main () =
-  (* Parse the command-line arguments *)
-  Arg.parse speclist
-      (begin fun fname -> infile_name := Some fname end)
-      "bean [-p] [bean source]" ;
-  (* Open the input file *)
-  let infile = match !infile_name with
-  | None -> stdin
-  | Some fname -> open_in fname in
-  (* Initialize lexing buffer *)
-  let lexbuf = Lexing.from_channel infile in
+    (* Parse the command-line arguments *)
+    Arg.parse speclist
+        (begin fun fname -> infile_name := Some fname end)
+        "bean [-p] [bean source]" ;
+    (* Open the input file *)
+    let infile = match !infile_name with
+    | None -> stdin
+    | Some fname -> open_in fname in
+    (* Initialize lexing buffer *)
+    let lexbuf = Lexing.from_channel infile in
     try
-      (* Call the parser *)
-      let prog = Bean_parse.program Bean_lex.token lexbuf in
-      (* If the mode is pp, then call the print_program; 
-       * otherwise, print the error msg *)
-      match !mode with
-      | PrettyPrint ->
-            (prerr_string "Pretty Print mode is disabled.")
-      | Compile ->
-          begin
-            A.alyz_program prog;
-            (* A.show_table(); *)
-            try
-              TC.check_program prog
-            with exn -> ignore
-                        (print_string (Printexc.to_string exn); 
-                         print_string "\n";
-                         raise (Semantic_Error "e"));
-            CG.generate_program F.std_formatter prog
-          end
+        (* Call the parser *)
+        let prog = Bean_parse.program Bean_lex.token lexbuf in
+        (* If the mode is pp, then call the print_program; 
+         * otherwise, print the error msg *)
+        match !mode with
+        | PrettyPrint -> (prerr_string "Pretty Print mode is disabled.")
+        | Compile ->
+            begin
+                (*		with exn -> output_string stderr (Printexc.to_string exn); exit 1);*)
+             (*with exn -> prerr_string "Symbol table generation error.\n"; failwith "exit");*)
+            (try
+ 		A.alyz_program prog;
+		TC.check_program prog
+ 		with exn -> output_string stderr (Printexc.to_string exn^"\n"); exit 1);            
+(*with exn -> prerr_string (Printexc.to_string exn); failwith "exit");*)
+             CG.generate_program F.std_formatter prog
+            end
     with exn -> ()
 
 let _ = main ()

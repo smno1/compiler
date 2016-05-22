@@ -1,6 +1,8 @@
 TARGETS = bean
 TARGETS_BYTE=$(TARGETS:%=%.byte)
 
+LIBS = str
+
 MODULES = bean_ast bean_lex bean_parse symbol analyze type_checking codegen
 MLFILES = $(addsuffix .ml, $(MODULES))
 CMOFILES = $(addsuffix .cmo, $(MODULES))
@@ -19,13 +21,13 @@ byte: $(TARGETS_BYTE)
 opt: $(TARGETS)
 
 %.cmi: %.mli
-	ocamlc $(OCAMLFLAGS) -c $<
+	ocamlc $(OCAMLFLAGS) -c str.cma $<
 
 %.cmo: %.ml
-	ocamlc $(OCAMLFLAGS) -g -c $<
+	ocamlc $(OCAMLFLAGS) -g -c str.cma $<
 
 %.cmx: %.ml
-	ocamlopt $(OCAMLOPTFLAGS) -g -c $<
+	ocamlopt $(OCAMLOPTFLAGS) -g -c str.cmxa $<
 
 %.ml: %.mll
 	$(OCAMLLEX) $^
@@ -34,10 +36,10 @@ opt: $(TARGETS)
 	$(OCAMLYACC) $^
 
 bean.byte : $(CMOFILES) bean.cmo
-	ocamlc -g -o $@ $^
+	ocamlc -g -o $@ str.cma $^
 
 bean : $(CMXFILES) bean.cmx
-	ocamlopt -g -o $@ $^
+	ocamlopt -g -o $@ str.cmxa $^
 
 clean :
 	rm -f *.cmo *.cmi *.cmx *.o
